@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Management;
 using System.Runtime.InteropServices;
 
-namespace Mlux.Lib
+namespace Mlux.Lib.Display
 {
     public class Monitor
     {
@@ -33,11 +30,11 @@ namespace Mlux.Lib
 
         public static void SetBrightness(byte targetBrightness)
         {
-            ManagementScope scope = new ManagementScope("root\\WMI");
-            SelectQuery query = new SelectQuery("WmiMonitorBrightnessMethods");
-            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, query))
+            var scope = new ManagementScope("root\\WMI");
+            var query = new SelectQuery("WmiMonitorBrightnessMethods");
+            using (var searcher = new ManagementObjectSearcher(scope, query))
             {
-                using (ManagementObjectCollection objectCollection = searcher.Get())
+                using (var objectCollection = searcher.Get())
                 {
                     foreach (ManagementObject mObj in objectCollection)
                     {
@@ -51,12 +48,11 @@ namespace Mlux.Lib
 
         public static byte GetBrightness()
         {
-
-            ManagementScope scope = new ManagementScope("root\\WMI");
-            SelectQuery query = new SelectQuery("WmiMonitorBrightness");
-            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, query))
+            var scope = new ManagementScope("root\\WMI");
+            var query = new SelectQuery("WmiMonitorBrightness");
+            using (var searcher = new ManagementObjectSearcher(scope, query))
             {
-                using (ManagementObjectCollection objectCollection = searcher.Get())
+                using (var objectCollection = searcher.Get())
                 {
                     foreach (ManagementObject mObj in objectCollection)
                     {
@@ -72,7 +68,7 @@ namespace Mlux.Lib
         {
             if (gamma <= 256 && gamma >= 1)
             {
-                RAMP ramp = new RAMP();
+                var ramp = new RAMP();
                 ramp.Red = new ushort[256];
                 ramp.Green = new ushort[256];
                 ramp.Blue = new ushort[256];
@@ -99,7 +95,7 @@ namespace Mlux.Lib
 
             if (gamma <= 256 && gamma >= 1)
             {
-                RAMP ramp = new RAMP();
+                var ramp = new RAMP();
                 GetDeviceGammaRamp(GetDC(IntPtr.Zero), ref ramp);
 
                 for (int i = 1; i < 256; i++)

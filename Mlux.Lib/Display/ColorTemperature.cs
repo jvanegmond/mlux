@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Mlux.Lib
+namespace Mlux.Lib.Display
 {
     public static class ColorTemperature
     {
@@ -12,7 +9,7 @@ namespace Mlux.Lib
         /// </summary>
         public static ColorProfile GetColorProfile(double temperature)
         {
-            ColorProfile result = new ColorProfile();
+            var result = new ColorProfile();
 
             // Code from http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
 
