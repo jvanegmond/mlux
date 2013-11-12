@@ -161,27 +161,44 @@ namespace Mlux
             SetColorTemperature(temperature);
         }
 
+        private byte _lastBrightness = 0;
         private void SetBrightness(byte val)
         {
-            Monitor.SetBrightness(val);
-            label1.BeginInvoke((Action)delegate()
-            {
-                label1.Text = String.Format("Current value: {0}", val);
-                trackBar1.Value = (int)val;
-            });
+            if (_lastBrightness == val) return;
+            _lastBrightness = val;
+
+            try {
+                Monitor.SetBrightness(val);
+                label1.BeginInvoke((Action) delegate()
+                {
+                    label1.Text = String.Format("Current value: {0}", val);
+                    trackBar1.Value = (int) val;
+                });
+            }
+            catch {
+                
+            }
         }
 
+        private double _lastTemperature = 0;
         private void SetColorTemperature(double temperature)
         {
             if (temperature < 3300) temperature = 3300;
             if (temperature > 6500) temperature = 6500;
 
-            Monitor.SetColorProfile(ColorTemperature.GetColorProfile(temperature));
-            label2.BeginInvoke((Action)delegate()
-            {
-                label2.Text = String.Format("Current value: {0}K", temperature);
-                trackBar2.Value = (int)temperature / 100;
-            });
+            if (Math.Abs(_lastTemperature - temperature) < 1) return;
+            _lastTemperature = temperature;
+            try {
+                Monitor.SetColorProfile(ColorTemperature.GetColorProfile(temperature));
+                label2.BeginInvoke((Action) delegate()
+                {
+                    label2.Text = String.Format("Current value: {0}K", temperature);
+                    trackBar2.Value = (int) temperature/100;
+                });
+            }
+            catch {
+                
+            }
         }
 
         private void checkBox2_CheckedChanged(object sender, EventArgs e)
