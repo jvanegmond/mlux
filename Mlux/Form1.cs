@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Mlux.Lib.Display;
@@ -14,16 +15,56 @@ namespace Mlux
         private readonly TimeProfile profile;
         private readonly Timer checkTimer;
         private DateTime _disabledSince = DateTime.MinValue;
+        private NotifyIcon _trayIcon;
 
         public Form1()
         {
+            this.Load += new EventHandler(OnLoad);
+            this.Closing += new System.ComponentModel.CancelEventHandler(OnClosing);
+            Application.ApplicationExit += new EventHandler(ApplicationExit);
+
             InitializeComponent();
 
             profile = LoadProfile();
 
             checkTimer = new Timer(TimerCallBack, null, 500, 10000);
 
-            Application.ApplicationExit += new EventHandler(ApplicationExit);
+            LoadIcon();
+        }
+
+        void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            this.Visible = false;
+            e.Cancel = true;
+        }
+
+        private void LoadIcon()
+        {
+            // Create a simple tray menu with only one item.
+            ContextMenu trayMenu = new ContextMenu();
+            trayMenu.MenuItems.Add("Exit", TrayIconOnExit);
+
+            // Create a tray icon. In this example we use a
+            // standard system icon for simplicity, but you
+            // can of course use your own custom icon too.
+            _trayIcon = new NotifyIcon();
+            _trayIcon.Text = "Mlux Demo";
+            _trayIcon.Icon = new Icon(SystemIcons.Application, 40, 40);
+            _trayIcon.Click += new EventHandler(TrayIconOnClick);
+
+            // Add menu to tray icon and show it.
+            _trayIcon.ContextMenu = trayMenu;
+            _trayIcon.Visible = true;
+        }
+
+        void TrayIconOnClick(object sender, EventArgs e)
+        {
+            this.Visible = !this.Visible;
+        }
+
+        private void TrayIconOnExit(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
 
         private void TimerCallBack(object a)
@@ -79,6 +120,7 @@ namespace Mlux
 
         void ApplicationExit(object sender, EventArgs e)
         {
+            _trayIcon.Dispose();
             checkTimer.Dispose();
 
             if (checkBox1.Checked)
@@ -88,8 +130,11 @@ namespace Mlux
             }
         }
 
-        private void Form1Load(object sender, EventArgs e)
+        private void OnLoad(object sender, EventArgs e)
         {
+            this.Visible = false;
+            this.ShowInTaskbar = true;
+
             _originalBrightness = Monitor.GetBrightness();
             trackBar1.Value = _originalBrightness;
             trackBar2.Value = trackBar2.Maximum;
