@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Mlux.Lib.Display;
 using Mlux.Lib.Time;
+using NLog;
 using Timer = System.Threading.Timer;
 
 
@@ -11,6 +12,8 @@ namespace Mlux
 {
     public partial class Form1 : Form
     {
+        private static Logger _log = LogManager.GetCurrentClassLogger();
+
         private byte _originalBrightness;
         private readonly TimeProfile profile;
         private readonly Timer checkTimer;
@@ -19,6 +22,8 @@ namespace Mlux
 
         public Form1()
         {
+            _log.Debug("Loading Form1");
+
             this.Load += new EventHandler(OnLoad);
             this.Closing += new System.ComponentModel.CancelEventHandler(OnClosing);
             Application.ApplicationExit += new EventHandler(ApplicationExit);
@@ -29,7 +34,7 @@ namespace Mlux
 
             checkTimer = new Timer(TimerCallBack, null, 500, 10000);
 
-            LoadIcon();
+            LoadTray();
         }
 
         void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -38,8 +43,10 @@ namespace Mlux
             e.Cancel = true;
         }
 
-        private void LoadIcon()
+        private void LoadTray()
         {
+            _log.Debug("Loading tray icon");
+
             // Create a simple tray menu with only one item.
             ContextMenu trayMenu = new ContextMenu();
             trayMenu.MenuItems.Add("Exit", TrayIconOnExit);
@@ -59,6 +66,7 @@ namespace Mlux
 
         void TrayIconOnClick(object sender, EventArgs e)
         {
+            _log.Info("Tray icon click");
             this.Visible = !this.Visible;
         }
 
@@ -69,30 +77,43 @@ namespace Mlux
 
         private void TimerCallBack(object a)
         {
+            _log.Debug("TimerCallBack");
+
             var dateDiffSinceDisable = DateTime.Now - _disabledSince;
             if (dateDiffSinceDisable.TotalHours < 1)
             {
+                _log.Debug("Mlux has been disabled since {0} ago", dateDiffSinceDisable);
                 return;
             }
             else if (dateDiffSinceDisable.TotalHours >= 1 && dateDiffSinceDisable.TotalHours < 2)
             {
+                _log.Debug("TimerCallBack will automatically re-enable because it's been over an hour");
                 checkBox2.BeginInvoke((Action)delegate
                 {
                     checkBox2.Checked = false;
                 });
             }
 
-            var time = DateTime.Now;
+            try
+            {
+                var time = DateTime.Now;
 
-            var brightness = Convert.ToByte(profile.GetCurrentValue(time, NodeProperty.Brightness));
-            var colorTemperature = Convert.ToInt32(profile.GetCurrentValue(time, NodeProperty.ColorTemperature));
+                var brightness = Convert.ToByte(profile.GetCurrentValue(time, NodeProperty.Brightness));
+                var colorTemperature = Convert.ToInt32(profile.GetCurrentValue(time, NodeProperty.ColorTemperature));
 
-            SetBrightness(brightness);
-            SetColorTemperature(colorTemperature);
+                SetBrightness(brightness);
+                SetColorTemperature(colorTemperature);
+            }
+            catch (Exception err)
+            {
+                _log.Error(err);
+            }
         }
 
         private static TimeProfile LoadProfile()
         {
+            _log.Info("Loading profile");
+
             var result = new TimeProfile();
 
             var wakeUpTime = new TimeNode(TimeSpan.FromHours(7));
@@ -105,9 +126,14 @@ namespace Mlux
             morning.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 6500));
             result.NodeManager.Nodes.Add(morning);
 
-            var afterDinner = new TimeNode(TimeSpan.FromHours(18));
-            afterDinner.Properties.Add(new NodeProperty(NodeProperty.Brightness, 80));
-            afterDinner.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 6500));
+            var srsModeOver = new TimeNode(TimeSpan.FromHours(17));
+            srsModeOver.Properties.Add(new NodeProperty(NodeProperty.Brightness, 80));
+            srsModeOver.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 6500));
+            result.NodeManager.Nodes.Add(srsModeOver);
+
+            var afterDinner = new TimeNode(TimeSpan.FromHours(19));
+            afterDinner.Properties.Add(new NodeProperty(NodeProperty.Brightness, 40));
+            afterDinner.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 5000));
             result.NodeManager.Nodes.Add(afterDinner);
 
             var bedTime = new TimeNode(TimeSpan.FromHours(22));
@@ -115,27 +141,60 @@ namespace Mlux
             bedTime.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 3300));
             result.NodeManager.Nodes.Add(bedTime);
 
+            _log.Info("Profile loaded with {0} time nodes", result.NodeManager.Nodes.Count);
+
             return result;
         }
 
         void ApplicationExit(object sender, EventArgs e)
         {
+            _log.Info("Exiting Mlux");
+
             _trayIcon.Dispose();
             checkTimer.Dispose();
 
             if (checkBox1.Checked)
             {
-                Monitor.SetBrightness(_originalBrightness);
-                Monitor.SetColorProfile(ColorProfile.Default);
+                _log.Info("Restoring original brightness");
+
+                try
+                {
+                    Monitor.SetBrightness(_originalBrightness);
+                    Monitor.SetColorProfile(ColorProfile.Default);
+                }
+                catch (Exception err)
+                {
+                    _log.Error(err);
+                    ShowError(err);
+                }
             }
+        }
+
+        private static void ShowError(Exception err)
+        {
+            MessageBox.Show("I'm sorry! :(\r\n\r\n" + err.ToString(), "Mlux");
         }
 
         private void OnLoad(object sender, EventArgs e)
         {
+            _log.Debug("Form1 loaded");
+
             this.Visible = false;
             this.ShowInTaskbar = true;
 
-            _originalBrightness = Monitor.GetBrightness();
+            try
+            {
+                _originalBrightness = Monitor.GetBrightness();
+            }
+            catch (Exception err)
+            {
+                _log.Error(err);
+                ShowError(err);
+                return;
+            }
+
+            _log.Debug("Storing original monitor brightness {0}", _originalBrightness);
+
             trackBar1.Value = _originalBrightness;
             trackBar2.Value = trackBar2.Maximum;
 
@@ -148,6 +207,8 @@ namespace Mlux
             var trackbar = sender as TrackBar;
             if (trackbar == null) return;
 
+            _log.Debug("TrackBar1Scroll new value {0}", trackbar.Value);
+
             SetBrightness((byte)trackbar.Value);
         }
 
@@ -155,6 +216,8 @@ namespace Mlux
         {
             var trackbar = sender as TrackBar;
             if (trackbar == null) return;
+
+            _log.Debug("TrackBar2Scroll new value {0}", trackbar.Value);
 
             var temperature = trackbar.Value * 100;
 
@@ -167,16 +230,21 @@ namespace Mlux
             if (_lastBrightness == val) return;
             _lastBrightness = val;
 
-            try {
+            _log.Debug("Setting monitor brightness to {0}", val);
+
+            try
+            {
                 Monitor.SetBrightness(val);
-                label1.BeginInvoke((Action) delegate()
+                label1.BeginInvoke((Action)delegate()
                 {
                     label1.Text = String.Format("Current value: {0}", val);
-                    trackBar1.Value = (int) val;
+                    trackBar1.Value = (int)val;
                 });
             }
-            catch {
-                
+            catch (Exception err)
+            {
+                _log.Error(err);
+                ShowError(err);
             }
         }
 
@@ -188,16 +256,22 @@ namespace Mlux
 
             if (Math.Abs(_lastTemperature - temperature) < 1) return;
             _lastTemperature = temperature;
-            try {
+
+            _log.Debug("Setting monitor color temperature to {0}", temperature);
+
+            try
+            {
                 Monitor.SetColorProfile(ColorTemperature.GetColorProfile(temperature));
-                label2.BeginInvoke((Action) delegate()
+                label2.BeginInvoke((Action)delegate()
                 {
                     label2.Text = String.Format("Current value: {0}K", temperature);
-                    trackBar2.Value = (int) temperature/100;
+                    trackBar2.Value = (int)temperature / 100;
                 });
             }
-            catch {
-                
+            catch (Exception err)
+            {
+                _log.Error(err);
+                ShowError(err);
             }
         }
 
@@ -206,11 +280,15 @@ namespace Mlux
             if (checkBox2.Checked)
             {
                 _disabledSince = DateTime.Now;
+                _log.Info("Disabling Mlux since {0}", _disabledSince);
+
                 SetBrightness(_originalBrightness);
                 SetColorTemperature(6500);
             }
             else
             {
+                _log.Info("Enabling Mlux");
+
                 _disabledSince = DateTime.MinValue;
                 TimerCallBack(null);
             }
