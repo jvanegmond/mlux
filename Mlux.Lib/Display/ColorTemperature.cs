@@ -7,9 +7,9 @@ namespace Mlux.Lib.Display
         /// <summary>
         /// Turns a temperature (between 0K and 70000K) into a color profile.
         /// </summary>
-        public static ColorProfile GetColorProfile(double temperature)
+        public static ColorAdjustment GetColorProfile(double temperature)
         {
-            var result = new ColorProfile();
+            var result = new ColorAdjustment();
 
             // Code from http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
 

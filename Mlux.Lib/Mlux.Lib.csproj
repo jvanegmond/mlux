@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Display\ColorProfile.cs" />
+    <Compile Include="Display\ColorAdjustment.cs" />
     <Compile Include="Display\ColorTemperature.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Time\LinearNodeInterpolation.cs" />

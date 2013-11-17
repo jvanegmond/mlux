@@ -123,7 +123,7 @@
             this.checkBox2.TabIndex = 3;
             this.checkBox2.Text = "Disable for 1 hour";
             this.checkBox2.UseVisualStyleBackColor = true;
-            this.checkBox2.CheckedChanged += new System.EventHandler(this.checkBox2_CheckedChanged);
+            this.checkBox2.CheckedChanged += new System.EventHandler(this.CheckBox2CheckedChanged);
             // 
             // Form1
             // 

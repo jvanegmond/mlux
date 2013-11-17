@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Management;
 using System.Runtime.InteropServices;
+using NLog;
 
 namespace Mlux.Lib.Display
 {
     public class Monitor
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public const int DefaultGamma = 129;
+        private RAMP _baseRamp;
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetDC(IntPtr hWnd);
@@ -28,7 +32,7 @@ namespace Mlux.Lib.Display
             public UInt16[] Blue;
         }
 
-        public static void SetBrightness(byte targetBrightness)
+        public void SetBrightness(byte targetBrightness)
         {
             var scope = new ManagementScope("root\\WMI");
             var query = new SelectQuery("WmiMonitorBrightnessMethods");
@@ -46,8 +50,10 @@ namespace Mlux.Lib.Display
             }
         }
 
-        public static byte GetBrightness()
+        public byte GetBrightness()
         {
+            // http://gyazo.com/2b2e6ecf1e827c77b3902a7c44670edc
+
             var scope = new ManagementScope("root\\WMI");
             var query = new SelectQuery("WmiMonitorBrightness");
             using (var searcher = new ManagementObjectSearcher(scope, query))
@@ -64,56 +70,72 @@ namespace Mlux.Lib.Display
             return byte.MaxValue;
         }
 
-        public static void SetColorProfile(ColorProfile profile, int gamma = DefaultGamma)
+        public RAMP GetCurrentGammaRAMP()
         {
+            var result = new RAMP();
+            GetDeviceGammaRamp(GetDC(IntPtr.Zero), ref result);
+            return result;
+        }
+
+        public void SetBaseGammaRAMP(RAMP baseRamp)
+        {
+            this._baseRamp = baseRamp;
+        }
+
+        public void SetColorProfile(ColorAdjustment adjustment, int gamma = DefaultGamma)
+        {
+            if (_baseRamp.Blue == null || _baseRamp.Red == null || _baseRamp.Green == null)
+            {
+                Log.Warn("The monitors current gamma ramp is unavailable. Falling back to default gamma ramp.");
+            }
+
             if (gamma <= 256 && gamma >= 1)
             {
-                var ramp = new RAMP();
-                ramp.Red = new ushort[256];
-                ramp.Green = new ushort[256];
-                ramp.Blue = new ushort[256];
+                var ramp = new RAMP { Red = new ushort[256], Green = new ushort[256], Blue = new ushort[256] };
+
                 for (int i = 1; i < 256; i++)
                 {
-                    double newGamma = i * (gamma + 128);
 
-                    if (newGamma > 65535)
-                        newGamma = 65535;
+                    ushort r, g, b;
+                    if (_baseRamp.Red == null)
+                    {
+                        r = (ushort)(i * (gamma + 128));
+                    }
+                    else
+                    {
+                        r = _baseRamp.Red[i];
+                    }
+                    if (_baseRamp.Blue == null)
+                    {
+                        b = (ushort)(i * (gamma + 128));
+                    }
+                    else
+                    {
+                        b = _baseRamp.Blue[i];
+                    }
+                    if (_baseRamp.Green == null)
+                    {
+                        g = (ushort)(i * (gamma + 128));
+                    }
+                    else
+                    {
+                        g = _baseRamp.Green[i];
+                    }
 
-                    ramp.Red[i] = ramp.Blue[i] = ramp.Green[i] = (ushort)newGamma;
-                    ramp.Red[i] = (ushort)(newGamma * profile.Red);
-                    ramp.Green[i] = (ushort)(newGamma * profile.Green);
-                    ramp.Blue[i] = (ushort)(newGamma * profile.Blue);
+                    ramp.Red[i] = (ushort)(r * adjustment.Red);
+                    ramp.Green[i] = (ushort)(g * adjustment.Green);
+                    ramp.Blue[i] = (ushort)(b * adjustment.Blue);
                 }
 
                 SetDeviceGammaRamp(GetDC(IntPtr.Zero), ref ramp);
             }
         }
 
-        public static ColorProfile GetColorProfile(int gamma = DefaultGamma)
+        private static float Clamp(float value, float min, float max)
         {
-            var result = new ColorProfile();
-
-            if (gamma <= 256 && gamma >= 1)
-            {
-                var ramp = new RAMP();
-                GetDeviceGammaRamp(GetDC(IntPtr.Zero), ref ramp);
-
-                for (int i = 1; i < 256; i++)
-                {
-                    double newGamma = i * (gamma + 128);
-
-                    if (newGamma > 65535)
-                        newGamma = 65535;
-
-                    result.Red = ramp.Red[i] / newGamma;
-                    result.Green = ramp.Green[i] / newGamma;
-                    result.Blue = ramp.Blue[i] / newGamma;
-
-                    break;
-                }
-            }
-
-            return result;
+            if (value > max) return max;
+            if (value < min) return min;
+            return value;
         }
     }
 }

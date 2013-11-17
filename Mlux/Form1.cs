@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Linq;
 using System.Windows.Forms;
 using Mlux.Lib.Display;
 using Mlux.Lib.Time;
@@ -12,27 +11,29 @@ namespace Mlux
 {
     public partial class Form1 : Form
     {
-        private static Logger _log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static readonly Monitor AllMonitors = new Monitor();
+
+        private readonly TimeProfile _profile;
+        private readonly Timer _checkTimer;
 
         private byte _originalBrightness;
-        private readonly TimeProfile profile;
-        private readonly Timer checkTimer;
         private DateTime _disabledSince = DateTime.MinValue;
         private NotifyIcon _trayIcon;
 
         public Form1()
         {
-            _log.Debug("Loading Form1");
+            Log.Debug("Loading Form1");
 
-            this.Load += new EventHandler(OnLoad);
-            this.Closing += new System.ComponentModel.CancelEventHandler(OnClosing);
-            Application.ApplicationExit += new EventHandler(ApplicationExit);
+            this.Load += OnLoad;
+            this.Closing += OnClosing;
+            Application.ApplicationExit += ApplicationExit;
 
             InitializeComponent();
 
-            profile = LoadProfile();
+            _profile = LoadProfile();
 
-            checkTimer = new Timer(TimerCallBack, null, 500, 10000);
+            _checkTimer = new Timer(TimerCallBack, null, 500, 10000);
 
             LoadTray();
         }
@@ -45,10 +46,10 @@ namespace Mlux
 
         private void LoadTray()
         {
-            _log.Debug("Loading tray icon");
+            Log.Debug("Loading tray icon");
 
             // Create a simple tray menu with only one item.
-            ContextMenu trayMenu = new ContextMenu();
+            var trayMenu = new ContextMenu();
             trayMenu.MenuItems.Add("Exit", TrayIconOnExit);
 
             // Create a tray icon. In this example we use a
@@ -57,7 +58,7 @@ namespace Mlux
             _trayIcon = new NotifyIcon();
             _trayIcon.Text = "Mlux Demo";
             _trayIcon.Icon = new Icon(SystemIcons.Application, 40, 40);
-            _trayIcon.Click += new EventHandler(TrayIconOnClick);
+            _trayIcon.Click += TrayIconOnClick;
 
             // Add menu to tray icon and show it.
             _trayIcon.ContextMenu = trayMenu;
@@ -66,7 +67,7 @@ namespace Mlux
 
         void TrayIconOnClick(object sender, EventArgs e)
         {
-            _log.Info("Tray icon click");
+            Log.Info("Tray icon click");
             this.Visible = !this.Visible;
         }
 
@@ -77,17 +78,17 @@ namespace Mlux
 
         private void TimerCallBack(object a)
         {
-            _log.Debug("TimerCallBack");
+            Log.Debug("TimerCallBack");
 
             var dateDiffSinceDisable = DateTime.Now - _disabledSince;
             if (dateDiffSinceDisable.TotalHours < 1)
             {
-                _log.Debug("Mlux has been disabled since {0} ago", dateDiffSinceDisable);
+                Log.Debug("Mlux has been disabled since {0} ago", dateDiffSinceDisable);
                 return;
             }
             else if (dateDiffSinceDisable.TotalHours >= 1 && dateDiffSinceDisable.TotalHours < 2)
             {
-                _log.Debug("TimerCallBack will automatically re-enable because it's been over an hour");
+                Log.Debug("TimerCallBack will automatically re-enable because it's been over an hour");
                 checkBox2.BeginInvoke((Action)delegate
                 {
                     checkBox2.Checked = false;
@@ -98,21 +99,21 @@ namespace Mlux
             {
                 var time = DateTime.Now;
 
-                var brightness = Convert.ToByte(profile.GetCurrentValue(time, NodeProperty.Brightness));
-                var colorTemperature = Convert.ToInt32(profile.GetCurrentValue(time, NodeProperty.ColorTemperature));
+                var brightness = Convert.ToByte(_profile.GetCurrentValue(time, NodeProperty.Brightness));
+                var colorTemperature = Convert.ToInt32(_profile.GetCurrentValue(time, NodeProperty.ColorTemperature));
 
                 SetBrightness(brightness);
                 SetColorTemperature(colorTemperature);
             }
             catch (Exception err)
             {
-                _log.Error(err);
+                Log.Error(err);
             }
         }
 
         private static TimeProfile LoadProfile()
         {
-            _log.Info("Loading profile");
+            Log.Info("Loading profile");
 
             var result = new TimeProfile();
 
@@ -141,30 +142,30 @@ namespace Mlux
             bedTime.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 3300));
             result.NodeManager.Nodes.Add(bedTime);
 
-            _log.Info("Profile loaded with {0} time nodes", result.NodeManager.Nodes.Count);
+            Log.Info("Profile loaded with {0} time nodes", result.NodeManager.Nodes.Count);
 
             return result;
         }
 
         void ApplicationExit(object sender, EventArgs e)
         {
-            _log.Info("Exiting Mlux");
+            Log.Info("Exiting Mlux");
 
             _trayIcon.Dispose();
-            checkTimer.Dispose();
+            _checkTimer.Dispose();
 
             if (checkBox1.Checked)
             {
-                _log.Info("Restoring original brightness");
+                Log.Info("Restoring original brightness");
 
                 try
                 {
-                    Monitor.SetBrightness(_originalBrightness);
-                    Monitor.SetColorProfile(ColorProfile.Default);
+                    AllMonitors.SetBrightness(_originalBrightness);
+                    AllMonitors.SetColorProfile(ColorAdjustment.Default);
                 }
                 catch (Exception err)
                 {
-                    _log.Error(err);
+                    Log.Error(err);
                     ShowError(err);
                 }
             }
@@ -177,26 +178,30 @@ namespace Mlux
 
         private void OnLoad(object sender, EventArgs e)
         {
-            _log.Debug("Form1 loaded");
+            Log.Debug("Form1 loaded");
 
             this.Visible = false;
             this.ShowInTaskbar = true;
 
             try
             {
-                _originalBrightness = Monitor.GetBrightness();
+                _originalBrightness = AllMonitors.GetBrightness();
             }
             catch (Exception err)
             {
-                _log.Error(err);
+                Log.Error(err);
                 ShowError(err);
                 return;
             }
 
-            _log.Debug("Storing original monitor brightness {0}", _originalBrightness);
+            Log.Debug("Storing original monitor brightness {0}", _originalBrightness);
 
             trackBar1.Value = _originalBrightness;
             trackBar2.Value = trackBar2.Maximum;
+
+            // Initialize the base gamma ramp with however the current gamma ramp is
+            var ramp = AllMonitors.GetCurrentGammaRAMP();
+            AllMonitors.SetBaseGammaRAMP(ramp);
 
             SetBrightness(_originalBrightness);
             SetColorTemperature(6500);
@@ -207,7 +212,7 @@ namespace Mlux
             var trackbar = sender as TrackBar;
             if (trackbar == null) return;
 
-            _log.Debug("TrackBar1Scroll new value {0}", trackbar.Value);
+            Log.Debug("TrackBar1Scroll new value {0}", trackbar.Value);
 
             SetBrightness((byte)trackbar.Value);
         }
@@ -217,7 +222,7 @@ namespace Mlux
             var trackbar = sender as TrackBar;
             if (trackbar == null) return;
 
-            _log.Debug("TrackBar2Scroll new value {0}", trackbar.Value);
+            Log.Debug("TrackBar2Scroll new value {0}", trackbar.Value);
 
             var temperature = trackbar.Value * 100;
 
@@ -230,11 +235,11 @@ namespace Mlux
             if (_lastBrightness == val) return;
             _lastBrightness = val;
 
-            _log.Debug("Setting monitor brightness to {0}", val);
+            Log.Debug("Setting monitor brightness to {0}", val);
 
             try
             {
-                Monitor.SetBrightness(val);
+                AllMonitors.SetBrightness(val);
                 label1.BeginInvoke((Action)delegate()
                 {
                     label1.Text = String.Format("Current value: {0}", val);
@@ -243,7 +248,7 @@ namespace Mlux
             }
             catch (Exception err)
             {
-                _log.Error(err);
+                Log.Error(err);
                 ShowError(err);
             }
         }
@@ -257,11 +262,11 @@ namespace Mlux
             if (Math.Abs(_lastTemperature - temperature) < 1) return;
             _lastTemperature = temperature;
 
-            _log.Debug("Setting monitor color temperature to {0}", temperature);
+            Log.Debug("Setting monitor color temperature to {0}", temperature);
 
             try
             {
-                Monitor.SetColorProfile(ColorTemperature.GetColorProfile(temperature));
+                AllMonitors.SetColorProfile(ColorTemperature.GetColorProfile(temperature));
                 label2.BeginInvoke((Action)delegate()
                 {
                     label2.Text = String.Format("Current value: {0}K", temperature);
@@ -270,24 +275,24 @@ namespace Mlux
             }
             catch (Exception err)
             {
-                _log.Error(err);
+                Log.Error(err);
                 ShowError(err);
             }
         }
 
-        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        private void CheckBox2CheckedChanged(object sender, EventArgs e)
         {
             if (checkBox2.Checked)
             {
                 _disabledSince = DateTime.Now;
-                _log.Info("Disabling Mlux since {0}", _disabledSince);
+                Log.Info("Disabling Mlux since {0}", _disabledSince);
 
                 SetBrightness(_originalBrightness);
                 SetColorTemperature(6500);
             }
             else
             {
-                _log.Info("Enabling Mlux");
+                Log.Info("Enabling Mlux");
 
                 _disabledSince = DateTime.MinValue;
                 TimerCallBack(null);
