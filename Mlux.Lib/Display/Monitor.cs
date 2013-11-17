@@ -52,8 +52,6 @@ namespace Mlux.Lib.Display
 
         public byte GetBrightness()
         {
-            // http://gyazo.com/2b2e6ecf1e827c77b3902a7c44670edc
-
             var scope = new ManagementScope("root\\WMI");
             var query = new SelectQuery("WmiMonitorBrightness");
             using (var searcher = new ManagementObjectSearcher(scope, query))

@@ -13,6 +13,7 @@ namespace Mlux
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly Monitor AllMonitors = new Monitor();
+        private static bool MonitorsSupportBrightness;
 
         private readonly TimeProfile _profile;
         private readonly Timer _checkTimer;
@@ -160,7 +161,7 @@ namespace Mlux
 
                 try
                 {
-                    AllMonitors.SetBrightness(_originalBrightness);
+                    if (MonitorsSupportBrightness) AllMonitors.SetBrightness(_originalBrightness);
                     AllMonitors.SetColorProfile(ColorAdjustment.Default);
                 }
                 catch (Exception err)
@@ -183,6 +184,7 @@ namespace Mlux
             this.Visible = false;
             this.ShowInTaskbar = true;
 
+            MonitorsSupportBrightness = true;
             try
             {
                 _originalBrightness = AllMonitors.GetBrightness();
@@ -190,8 +192,8 @@ namespace Mlux
             catch (Exception err)
             {
                 Log.Error(err);
-                ShowError(err);
-                return;
+                Log.Info("Continuing with monitor brightness support");
+                MonitorsSupportBrightness = false;
             }
 
             Log.Debug("Storing original monitor brightness {0}", _originalBrightness);
@@ -200,10 +202,13 @@ namespace Mlux
             trackBar2.Value = trackBar2.Maximum;
 
             // Initialize the base gamma ramp with however the current gamma ramp is
+
+            Log.Debug("Storing original monitor gamma ramp");
             var ramp = AllMonitors.GetCurrentGammaRAMP();
             AllMonitors.SetBaseGammaRAMP(ramp);
 
             SetBrightness(_originalBrightness);
+
             SetColorTemperature(6500);
         }
 
@@ -239,7 +244,7 @@ namespace Mlux
 
             try
             {
-                AllMonitors.SetBrightness(val);
+                if (MonitorsSupportBrightness) AllMonitors.SetBrightness(val);
                 label1.BeginInvoke((Action)delegate()
                 {
                     label1.Text = String.Format("Current value: {0}", val);
