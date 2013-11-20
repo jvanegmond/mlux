@@ -1,0 +1,7 @@
+MLux Changelog
+
+v0.1 - Beta 2
+- Fixed a crash which happens when you are using a monitor which does not support setting the display brightness. For example, a regular desktop monitor.
+
+v0.1 - Beta 1
+- Initial version
