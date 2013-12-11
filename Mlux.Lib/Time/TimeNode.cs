@@ -8,14 +8,24 @@ namespace Mlux.Lib.Time
     {
         [XmlArrayAttribute]
         public List<NodeProperty> Properties { get; private set; }
+
+        [XmlIgnore]
         public TimeSpan TimeOfDay { get; set; }
+
+        [XmlElement]
+        public long TimeOfDayTicks
+        {
+            get { return TimeOfDay.Ticks; }
+            set { TimeOfDay = new TimeSpan(value); }
+        }
 
         public TimeNode()
         {
             Properties = new List<NodeProperty>();
         }
 
-        public TimeNode(TimeSpan timeOfDay) : this()
+        public TimeNode(TimeSpan timeOfDay)
+            : this()
         {
             this.TimeOfDay = timeOfDay;
         }
