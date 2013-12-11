@@ -139,6 +139,7 @@
             this.MinimizeBox = false;
             this.Name = "Form1";
             this.Text = "Mlux Demo";
+            this.Deactivate += new System.EventHandler(this.Form1Deactivate);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();

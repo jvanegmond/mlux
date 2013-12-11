@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using Mlux.Lib.Display;
 using Mlux.Lib.Time;
 using NLog;
+using Monitor = Mlux.Lib.Display.Monitor;
 using Timer = System.Threading.Timer;
 
 
@@ -13,7 +15,7 @@ namespace Mlux
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly Monitor AllMonitors = new Monitor();
-        private static bool MonitorsSupportBrightness;
+        private static bool _monitorsSupportBrightness;
 
         private readonly TimeProfile _profile;
         private readonly Timer _checkTimer;
@@ -69,7 +71,11 @@ namespace Mlux
         void TrayIconOnClick(object sender, EventArgs e)
         {
             Log.Info("Tray icon click");
+
             this.Visible = !this.Visible;
+            if (this.Visible) {
+                this.Activate();
+            }
         }
 
         private void TrayIconOnExit(object sender, EventArgs e)
@@ -161,8 +167,11 @@ namespace Mlux
 
                 try
                 {
-                    if (MonitorsSupportBrightness) AllMonitors.SetBrightness(_originalBrightness);
-                    AllMonitors.SetColorProfile(ColorAdjustment.Default);
+                    lock (AllMonitors)
+                    {
+                        if (_monitorsSupportBrightness) AllMonitors.SetBrightness(_originalBrightness);
+                        AllMonitors.SetColorProfile(ColorAdjustment.Default);
+                    }
                 }
                 catch (Exception err)
                 {
@@ -184,16 +193,19 @@ namespace Mlux
             this.Visible = false;
             this.ShowInTaskbar = true;
 
-            MonitorsSupportBrightness = true;
-            try
+            lock (AllMonitors)
             {
-                _originalBrightness = AllMonitors.GetBrightness();
-            }
-            catch (Exception err)
-            {
-                Log.Error(err);
-                Log.Info("Continuing with monitor brightness support");
-                MonitorsSupportBrightness = false;
+                _monitorsSupportBrightness = true;
+                try
+                {
+                    _originalBrightness = AllMonitors.GetBrightness();
+                }
+                catch (Exception err)
+                {
+                    Log.Error(err);
+                    Log.Info("Continuing with monitor brightness support");
+                    _monitorsSupportBrightness = false;
+                }
             }
 
             Log.Debug("Storing original monitor brightness {0}", _originalBrightness);
@@ -244,17 +256,17 @@ namespace Mlux
 
             try
             {
-                if (MonitorsSupportBrightness) AllMonitors.SetBrightness(val);
+                if (_monitorsSupportBrightness) AllMonitors.SetBrightness(val);
                 label1.BeginInvoke((Action)delegate()
                 {
                     label1.Text = String.Format("Current value: {0}", val);
                     trackBar1.Value = (int)val;
                 });
             }
-            catch (Exception err)
-            {
-                Log.Error(err);
-                ShowError(err);
+            catch
+            { // just eat it
+                //Log.Error(err);
+                //ShowError(err);
             }
         }
 
@@ -302,6 +314,20 @@ namespace Mlux
                 _disabledSince = DateTime.MinValue;
                 TimerCallBack(null);
             }
+        }
+
+        private void Form1Deactivate(object sender, EventArgs e)
+        {
+            new Timer(delegate(object state)
+            {
+                this.BeginInvoke((Action)delegate
+                {
+                    if (!this.Focused) {
+                        this.Visible = false;
+                    }
+                });
+
+            }, null, 1000, Timeout.Infinite);
         }
     }
 }
