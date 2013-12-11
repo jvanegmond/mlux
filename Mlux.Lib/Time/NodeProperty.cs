@@ -13,6 +13,11 @@ namespace Mlux.Lib.Time
         public string Name { get; set; }
         public object Value { get; set; }
 
+        public NodeProperty()
+        {
+            
+        }
+
         public NodeProperty(string name, object value)
         {
             Name = name;

@@ -47,16 +47,19 @@
     <Compile Include="Display\ColorAdjustment.cs" />
     <Compile Include="Display\ColorTemperature.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TimeProfileSerializer.cs" />
     <Compile Include="Time\LinearNodeInterpolation.cs" />
-    <Compile Include="Time\NodeManager.cs" />
+    <Compile Include="Time\TimeProfile.cs" />
     <Compile Include="Time\NodeProperty.cs" />
     <Compile Include="Time\TimeNode.cs" />
     <Compile Include="Display\Monitor.cs" />
-    <Compile Include="Time\TimeProfile.cs" />
     <Compile Include="Time\TimeUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Persistence\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

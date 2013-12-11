@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using Mlux.Lib;
 using Mlux.Lib.Display;
 using Mlux.Lib.Time;
 using NLog;
@@ -23,6 +26,8 @@ namespace Mlux
         private byte _originalBrightness;
         private DateTime _disabledSince = DateTime.MinValue;
         private NotifyIcon _trayIcon;
+
+        private const string SavedProfilePath = "profile.xml";
 
         public Form1()
         {
@@ -122,34 +127,48 @@ namespace Mlux
         {
             Log.Info("Loading profile");
 
+            TimeProfile result;
+            if (File.Exists(SavedProfilePath)) {
+                var savedProfileData = File.ReadAllText(SavedProfilePath, Encoding.UTF8);
+                result = TimeProfileSerializer.Deserialize(savedProfileData);
+            }
+            else {
+                result = CreateDefaultProfile();
+            }
+
+            Log.Info("Profile loaded with {0} time nodes", result.Nodes.Count);
+
+            return result;
+        }
+
+        private static TimeProfile CreateDefaultProfile()
+        {
             var result = new TimeProfile();
 
             var wakeUpTime = new TimeNode(TimeSpan.FromHours(7));
             wakeUpTime.Properties.Add(new NodeProperty(NodeProperty.Brightness, 20));
             wakeUpTime.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 3300));
-            result.NodeManager.Nodes.Add(wakeUpTime);
+            result.Nodes.Add(wakeUpTime);
 
             var morning = new TimeNode(TimeSpan.FromHours(8));
             morning.Properties.Add(new NodeProperty(NodeProperty.Brightness, 80));
             morning.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 6500));
-            result.NodeManager.Nodes.Add(morning);
+            result.Nodes.Add(morning);
 
             var srsModeOver = new TimeNode(TimeSpan.FromHours(17));
             srsModeOver.Properties.Add(new NodeProperty(NodeProperty.Brightness, 80));
             srsModeOver.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 6500));
-            result.NodeManager.Nodes.Add(srsModeOver);
+            result.Nodes.Add(srsModeOver);
 
             var afterDinner = new TimeNode(TimeSpan.FromHours(19));
             afterDinner.Properties.Add(new NodeProperty(NodeProperty.Brightness, 40));
             afterDinner.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 5000));
-            result.NodeManager.Nodes.Add(afterDinner);
+            result.Nodes.Add(afterDinner);
 
             var bedTime = new TimeNode(TimeSpan.FromHours(22));
             bedTime.Properties.Add(new NodeProperty(NodeProperty.Brightness, 20));
             bedTime.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 3300));
-            result.NodeManager.Nodes.Add(bedTime);
-
-            Log.Info("Profile loaded with {0} time nodes", result.NodeManager.Nodes.Count);
+            result.Nodes.Add(bedTime);
 
             return result;
         }
@@ -158,8 +177,13 @@ namespace Mlux
         {
             Log.Info("Exiting Mlux");
 
-            _trayIcon.Dispose();
-            _checkTimer.Dispose();
+            if (_trayIcon != null) _trayIcon.Dispose();
+            if (_checkTimer != null) _checkTimer.Dispose();
+
+            Log.Info("Saving profile");
+
+            var profileData = TimeProfileSerializer.Serialize(_profile);
+            File.WriteAllText(SavedProfilePath, profileData, Encoding.UTF8);
 
             if (checkBox1.Checked)
             {

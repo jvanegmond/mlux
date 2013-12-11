@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 
 namespace Mlux.Lib.Time
 {
     public class TimeNode
     {
+        [XmlArrayAttribute]
         public List<NodeProperty> Properties { get; private set; }
         public TimeSpan TimeOfDay { get; set; }
 
