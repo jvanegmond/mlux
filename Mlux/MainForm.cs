@@ -14,7 +14,7 @@ using Timer = System.Threading.Timer;
 
 namespace Mlux
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly Monitor AllMonitors = new Monitor();
@@ -29,9 +29,14 @@ namespace Mlux
 
         private const string SavedProfilePath = "profile.xml";
 
-        public Form1()
+        public MainForm(bool startHidden)
         {
             Log.Debug("Loading Form1");
+
+            if (startHidden)
+            {
+                
+            }
 
             this.Load += OnLoad;
             this.Closing += OnClosing;
