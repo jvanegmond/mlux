@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 namespace Mlux.Lib.Time
 {
-    [XmlRootAttribute]
+    [Serializable]
     public class TimeProfile
     {
         public string Name { get; set; }
@@ -15,7 +15,7 @@ namespace Mlux.Lib.Time
         // current node   =   last node before given time
         // next node      =   first node after given time
 
-        [XmlArrayAttribute("Children")]
+		
         public List<TimeNode> Nodes { get; private set; }
 
         public TimeProfile()

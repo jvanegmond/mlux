@@ -1,14 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Xml.Serialization;
 
 namespace Mlux.Lib.Time
 {
+	[Serializable]
     public class TimeNode
     {
-        [XmlArrayAttribute]
         public List<NodeProperty> Properties { get; private set; }
+
+		[XmlIgnore]
         public TimeSpan TimeOfDay { get; set; }
+
+		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+		public DateTime TimeOfDayDateTime {
+			get
+			{
+				return new DateTime(TimeOfDay.Ticks);
+			}
+			set
+			{
+				TimeOfDay = new TimeSpan(value.Ticks);
+			}
+		}
 
         public TimeNode()
         {
