@@ -16,6 +16,7 @@ namespace Mlux
 {
     public partial class MainForm : Form
     {
+        private bool _forceHide;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly Monitor AllMonitors = new Monitor();
         private static bool _monitorsSupportBrightness;
@@ -31,12 +32,8 @@ namespace Mlux
 
         public MainForm(bool startHidden)
         {
+            _forceHide = startHidden;
             Log.Debug("Loading Form1");
-
-            if (startHidden)
-            {
-                
-            }
 
             this.Load += OnLoad;
             this.Closing += OnClosing;
@@ -49,6 +46,16 @@ namespace Mlux
             _checkTimer = new Timer(TimerCallBack, null, 500, 10000);
 
             LoadTray();
+        }
+
+        protected override void SetVisibleCore(bool value)
+        {
+            if (_forceHide)
+            {
+                base.SetVisibleCore(false);
+                return;
+            }
+            base.SetVisibleCore(value);
         }
 
         void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -82,6 +89,7 @@ namespace Mlux
         {
             Log.Info("Tray icon click");
 
+            _forceHide = false;
             this.Visible = !this.Visible;
             if (this.Visible) {
                 this.Activate();
@@ -212,14 +220,13 @@ namespace Mlux
 
         private static void ShowError(Exception err)
         {
-            MessageBox.Show("I'm sorry! :(\r\n\r\n" + err.ToString(), "Mlux");
+            MessageBox.Show("I'm sorry! :(\r\n\r\n" + err, "Mlux");
         }
 
         private void OnLoad(object sender, EventArgs e)
         {
             Log.Debug("Form1 loaded");
-
-            this.Visible = false;
+            
             this.ShowInTaskbar = true;
 
             lock (AllMonitors)
@@ -286,16 +293,17 @@ namespace Mlux
             try
             {
                 if (_monitorsSupportBrightness) AllMonitors.SetBrightness(val);
+                if (!Visible) return;
                 label1.BeginInvoke((Action)delegate()
                 {
                     label1.Text = String.Format("Current value: {0}", val);
                     trackBar1.Value = (int)val;
                 });
             }
-            catch
-            { // just eat it
-                //Log.Error(err);
-                //ShowError(err);
+            catch (Exception err)
+            {
+                Log.Error(err);
+                ShowError(err);
             }
         }
 
@@ -313,6 +321,7 @@ namespace Mlux
             try
             {
                 AllMonitors.SetColorProfile(ColorTemperature.GetColorProfile(temperature));
+                if (!Visible) return;
                 label2.BeginInvoke((Action)delegate()
                 {
                     label2.Text = String.Format("Current value: {0}K", temperature);
