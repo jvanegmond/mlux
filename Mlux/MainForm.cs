@@ -216,6 +216,8 @@ namespace Mlux
                     ShowError(err);
                 }
             }
+
+            AllMonitors.Dispose();
         }
 
         private static void ShowError(Exception err)

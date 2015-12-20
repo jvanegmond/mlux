@@ -5,7 +5,7 @@ using NLog;
 
 namespace Mlux.Lib.Display
 {
-    public class Monitor
+    public class Monitor : IDisposable
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -32,40 +32,71 @@ namespace Mlux.Lib.Display
             public UInt16[] Blue;
         }
 
-        public void SetBrightness(byte targetBrightness)
+        private uint _physicalMonitorsCount = 0;
+        private MonitorStructures.PHYSICAL_MONITOR[] _physicalMonitorArray;
+
+        private IntPtr _hMonitor;
+
+        private uint _minValue = 0;
+        private uint _maxValue = 0;
+        private uint _currentValue = 0;
+
+
+        [DllImport("user32.dll", SetLastError = false)]
+        public static extern IntPtr GetDesktopWindow();
+
+        public Monitor()
         {
-            var scope = new ManagementScope("root\\WMI");
-            var query = new SelectQuery("WmiMonitorBrightnessMethods");
-            using (var searcher = new ManagementObjectSearcher(scope, query))
+            var windowHandle = GetDesktopWindow();
+
+            uint dwFlags = 0u;
+            IntPtr ptr = MonitorMethods.MonitorFromWindow(windowHandle, dwFlags);
+            if (!MonitorMethods.GetNumberOfPhysicalMonitorsFromHMONITOR(ptr, ref _physicalMonitorsCount))
             {
-                using (var objectCollection = searcher.Get())
+                throw new Exception("Cannot get monitor count!");
+            }
+            _physicalMonitorArray = new MonitorStructures.PHYSICAL_MONITOR[_physicalMonitorsCount];
+
+            if (!MonitorMethods.GetPhysicalMonitorsFromHMONITOR(ptr, _physicalMonitorsCount, _physicalMonitorArray))
+            {
+                throw new Exception("Cannot get phisical monitor handle!");
+            }
+            _hMonitor = _physicalMonitorArray[0].hPhysicalMonitor;
+
+            if (!MonitorMethods.GetMonitorBrightness(_hMonitor, ref _minValue, ref _currentValue, ref _maxValue))
+            {
+                throw new Exception("Cannot get monitor brightness!");
+            }
+        }
+
+        public void SetBrightness(int newValue)
+        {
+            newValue = Math.Min(newValue, Math.Max(0, newValue));
+            _currentValue = (_maxValue - _minValue) * (uint)newValue / 100u + _minValue;
+            MonitorMethods.SetMonitorBrightness(_hMonitor, _currentValue);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_physicalMonitorsCount > 0)
                 {
-                    foreach (ManagementObject mObj in objectCollection)
-                    {
-                        mObj.InvokeMethod("WmiSetBrightness",
-                            new Object[] { UInt32.MaxValue, targetBrightness });
-                        break;
-                    }
+                    MonitorMethods.DestroyPhysicalMonitors(_physicalMonitorsCount, _physicalMonitorArray);
                 }
             }
         }
 
         public byte GetBrightness()
         {
-            var scope = new ManagementScope("root\\WMI");
-            var query = new SelectQuery("WmiMonitorBrightness");
-            using (var searcher = new ManagementObjectSearcher(scope, query))
-            {
-                using (var objectCollection = searcher.Get())
-                {
-                    foreach (ManagementObject mObj in objectCollection)
-                    {
-                        return (byte)mObj.GetPropertyValue("CurrentBrightness");
-                    }
-                }
-            }
-
-            return byte.MaxValue;
+            MonitorMethods.GetMonitorBrightness(_hMonitor, ref _minValue, ref _currentValue, ref _maxValue);
+            return (byte)_currentValue;
         }
 
         public RAMP GetCurrentGammaRAMP()
