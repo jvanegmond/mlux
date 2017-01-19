@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="SettingsWindow" Height="600" Width="900" Background="Black">
     <Grid>
-        <local:MluxSettingsGraph x:Name="SettingsGraph"></local:MluxSettingsGraph>
+        <local:MluxSettingsGraph x:Name="SettingsGraph" Margin="20"></local:MluxSettingsGraph>
     </Grid>
 </Window>

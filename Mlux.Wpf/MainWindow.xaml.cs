@@ -99,7 +99,7 @@ namespace Mlux.Wpf
 
         private void Open_settings_OnClick(object sender, RoutedEventArgs e)
         {
-            if (_settings == null) _settings = new SettingsWindow();
+            if (_settings == null || !_settings.IsLoaded) _settings = new SettingsWindow();
             
             _settings.Profile = _profile;
             _settings.Show();
