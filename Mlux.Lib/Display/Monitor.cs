@@ -20,6 +20,8 @@ namespace Mlux.Lib.Display
 
         private readonly IntPtr _hMonitor;
         private readonly IntPtr _hdcMonitor;
+        private readonly uint _physicalMonitorsCount = 1;
+        private MonitorStructures.PhysicalMonitor[] _physicalMonitors;
 
         public bool SupportBrightness { get; }
         public uint MinBrightness { get; private set; }
@@ -35,8 +37,22 @@ namespace Mlux.Lib.Display
             // Get the current brightness
             try
             {
-                SupportBrightness = true; // Set this first otherwise GetBrightness returns without doing work
+                SupportBrightness = true;
+
+                if (!MonitorMethods.GetNumberOfPhysicalMonitorsFromHMONITOR(_hMonitor, ref _physicalMonitorsCount))
+                {
+                    throw new ApplicationException($"Cannot GetNumberOfPhysicalMonitorsFromHMONITOR for hmonitor {_hMonitor}");
+                }
+
+                _physicalMonitors = new MonitorStructures.PhysicalMonitor[_physicalMonitorsCount];
+
+                if (!MonitorMethods.GetPhysicalMonitorsFromHMONITOR(_hMonitor, _physicalMonitorsCount, _physicalMonitors))
+                {
+                    throw new ApplicationException($"Cannot GetPhysicalMonitorsFromHMONITOR for hmonitor {_hMonitor}");
+                }
+
                 GetBrightness();
+
                 InitialBrightness = Brightness;
             }
             catch (Exception err)
@@ -63,7 +79,7 @@ namespace Mlux.Lib.Display
 
             brightness = Math.Min(brightness, Math.Max(0, brightness));
             Brightness = (MaxBrightness - MinBrightness) * (uint)brightness / 100u + MinBrightness;
-            MonitorMethods.SetMonitorBrightness(_hMonitor, Brightness);
+            MonitorMethods.SetMonitorBrightness(_physicalMonitors[0].hPhysicalMonitor, Brightness);
         }
 
         public byte GetBrightness()
@@ -73,7 +89,7 @@ namespace Mlux.Lib.Display
             uint brightness = 0;
             uint minBrightness = 0;
             uint maxBrightness = 0;
-            if (!MonitorMethods.GetMonitorBrightness(_hMonitor, ref minBrightness, ref brightness, ref maxBrightness))
+            if (!MonitorMethods.GetMonitorBrightness(_physicalMonitors[0].hPhysicalMonitor, ref minBrightness, ref brightness, ref maxBrightness))
             {
                 throw new ApplicationException("Unable to retrieve brightness through GetMonitorBrightness call.");
             }
