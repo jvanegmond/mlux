@@ -30,6 +30,8 @@ namespace Mlux.Wpf
         private const string _savedProfilePath = "profile.xml";
 
         private TimeProfile _profile;
+        private TrayIcon _trayIcon;
+        private SettingsWindow _settings;
 
         public MainWindow()
         {
@@ -39,6 +41,34 @@ namespace Mlux.Wpf
             Closed += MainWindow_Closed;
 
             _profile = LoadProfile();
+
+            _trayIcon = new TrayIcon();
+            _trayIcon.MainClick += _trayIcon_MainClick;
+            _trayIcon.ExitClick += _trayIcon_ExitClick;
+        }
+
+        private void _trayIcon_ExitClick(TrayIcon icon, EventArgs e)
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                Application.Current.Shutdown();
+            });
+            // Close application
+        }
+
+        private void _trayIcon_MainClick(TrayIcon icon, EventArgs e)
+        {
+            // Toggle visibility
+            if (WindowState != WindowState.Minimized)
+            {
+                WindowState = WindowState.Minimized;
+                if (_settings != null) _settings.WindowState = WindowState.Minimized;
+            }
+            else
+            {
+                WindowState = WindowState.Normal;
+                if (_settings != null) _settings.WindowState = WindowState.Normal;
+            }
         }
 
         private static TimeProfile LoadProfile()
@@ -63,14 +93,16 @@ namespace Mlux.Wpf
 
         private void MainWindow_Closed(object sender, EventArgs e)
         {
+            _trayIcon.Dispose();
             _allMonitors.Reset();
         }
 
         private void Open_settings_OnClick(object sender, RoutedEventArgs e)
         {
-            var settings = new SettingsWindow();
-            settings.Profile = _profile;
-            settings.Show();
+            if (_settings == null) _settings = new SettingsWindow();
+            
+            _settings.Profile = _profile;
+            _settings.Show();
         }
     }
 }

@@ -10,6 +10,11 @@ namespace Mlux.Wpf
     {
         public void Start(bool startHidden)
         {
+            if (System.Windows.Application.Current == null)
+            {
+                new System.Windows.Application();
+            }
+
             var window = new MainWindow();
             window.ShowDialog();
         }

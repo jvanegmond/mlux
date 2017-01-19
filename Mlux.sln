@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mlux", "Mlux\Mlux.csproj", "{CFE4FE09-390E-4E91-95EA-11BC396E7F8F}"
 EndProject
@@ -20,28 +20,48 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mlux.Wpf", "Mlux.Wpf\Mlux.Wpf.csproj", "{8D27A130-D5C4-4892-9D7E-783CE2400B2E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mlux.Tray", "Mlux.Tray\Mlux.Tray.csproj", "{474FD573-3B3E-41A8-9026-78D38E701C2B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CFE4FE09-390E-4E91-95EA-11BC396E7F8F}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{CFE4FE09-390E-4E91-95EA-11BC396E7F8F}.Debug|x86.ActiveCfg = Debug|x86
 		{CFE4FE09-390E-4E91-95EA-11BC396E7F8F}.Debug|x86.Build.0 = Debug|x86
+		{CFE4FE09-390E-4E91-95EA-11BC396E7F8F}.Release|Any CPU.ActiveCfg = Release|x86
 		{CFE4FE09-390E-4E91-95EA-11BC396E7F8F}.Release|x86.ActiveCfg = Release|x86
 		{CFE4FE09-390E-4E91-95EA-11BC396E7F8F}.Release|x86.Build.0 = Release|x86
+		{81E838A0-6802-46B8-B13B-07E49C5EB0A7}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{81E838A0-6802-46B8-B13B-07E49C5EB0A7}.Debug|x86.ActiveCfg = Debug|x86
 		{81E838A0-6802-46B8-B13B-07E49C5EB0A7}.Debug|x86.Build.0 = Debug|x86
+		{81E838A0-6802-46B8-B13B-07E49C5EB0A7}.Release|Any CPU.ActiveCfg = Release|x86
 		{81E838A0-6802-46B8-B13B-07E49C5EB0A7}.Release|x86.ActiveCfg = Release|x86
 		{81E838A0-6802-46B8-B13B-07E49C5EB0A7}.Release|x86.Build.0 = Release|x86
+		{15461527-093B-4ACB-BD57-8614E1C99799}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{15461527-093B-4ACB-BD57-8614E1C99799}.Debug|x86.ActiveCfg = Debug|x86
 		{15461527-093B-4ACB-BD57-8614E1C99799}.Debug|x86.Build.0 = Debug|x86
+		{15461527-093B-4ACB-BD57-8614E1C99799}.Release|Any CPU.ActiveCfg = Release|x86
 		{15461527-093B-4ACB-BD57-8614E1C99799}.Release|x86.ActiveCfg = Release|x86
 		{15461527-093B-4ACB-BD57-8614E1C99799}.Release|x86.Build.0 = Release|x86
+		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Debug|x86.ActiveCfg = Debug|x86
 		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Debug|x86.Build.0 = Debug|x86
+		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Release|Any CPU.ActiveCfg = Release|x86
 		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Release|x86.ActiveCfg = Release|x86
 		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Release|x86.Build.0 = Release|x86
+		{474FD573-3B3E-41A8-9026-78D38E701C2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{474FD573-3B3E-41A8-9026-78D38E701C2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{474FD573-3B3E-41A8-9026-78D38E701C2B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{474FD573-3B3E-41A8-9026-78D38E701C2B}.Debug|x86.Build.0 = Debug|Any CPU
+		{474FD573-3B3E-41A8-9026-78D38E701C2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{474FD573-3B3E-41A8-9026-78D38E701C2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{474FD573-3B3E-41A8-9026-78D38E701C2B}.Release|x86.ActiveCfg = Release|Any CPU
+		{474FD573-3B3E-41A8-9026-78D38E701C2B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,6 +72,7 @@ Global
 		{15461527-093B-4ACB-BD57-8614E1C99799} = {6F7AC449-0D29-4149-B69D-58FBDBF7DEC6}
 		{F145B15B-80CD-400B-83FC-758CFD13AC0C} = {6F7AC449-0D29-4149-B69D-58FBDBF7DEC6}
 		{8D27A130-D5C4-4892-9D7E-783CE2400B2E} = {E7A53269-5906-483C-86F6-3EBF1373E699}
+		{474FD573-3B3E-41A8-9026-78D38E701C2B} = {E7A53269-5906-483C-86F6-3EBF1373E699}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Mlux.vsmdi

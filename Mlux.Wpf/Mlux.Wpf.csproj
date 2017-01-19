@@ -38,7 +38,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.2.2\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.4.1\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -110,6 +110,10 @@
     <ProjectReference Include="..\Mlux.Lib\Mlux.Lib.csproj">
       <Project>{81E838A0-6802-46B8-B13B-07E49C5EB0A7}</Project>
       <Name>Mlux.Lib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mlux.Tray\Mlux.Tray.csproj">
+      <Project>{474FD573-3B3E-41A8-9026-78D38E701C2B}</Project>
+      <Name>Mlux.Tray</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
