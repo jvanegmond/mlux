@@ -29,12 +29,12 @@ namespace Mlux
 
             _log.Info(() => $"Start hidden parameter: {startHidden}");
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm(startHidden));
+            //Application.EnableVisualStyles();
+            //Application.SetCompatibleTextRenderingDefault(false);
+            //Application.Run(new MainForm(startHidden));
 
-            //var window = new WindowManager();
-            //window.Start(startHidden);
+            var window = new WindowManager();
+            window.Start(startHidden);
         }
     }
 }

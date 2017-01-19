@@ -39,7 +39,6 @@ namespace Mlux.Wpf
             Closed += MainWindow_Closed;
 
             _profile = LoadProfile();
-            SettingsGraph.Profile = _profile;
         }
 
         private static TimeProfile LoadProfile()
@@ -65,6 +64,13 @@ namespace Mlux.Wpf
         private void MainWindow_Closed(object sender, EventArgs e)
         {
             _allMonitors.Reset();
+        }
+
+        private void Open_settings_OnClick(object sender, RoutedEventArgs e)
+        {
+            var settings = new SettingsWindow();
+            settings.Profile = _profile;
+            settings.Show();
         }
     }
 }
