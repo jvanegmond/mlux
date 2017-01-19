@@ -9,56 +9,60 @@ namespace Mlux.Lib.Display
         /// </summary>
         public static ColorAdjustment GetColorProfile(double temperature)
         {
-            var result = new ColorAdjustment();
-
             // Code from http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
 
             temperature = temperature / 100;
 
+            // Red
+            double red;
             if (temperature <= 66)
             {
-                result.Red = 255;
+                red = 255;
             }
             else
             {
-                result.Red = temperature - 60;
-                result.Red = 329.698727446 * (Math.Pow(result.Red, -0.1332047592));
-                if (result.Red < 0) result.Red = 0;
-                if (result.Red > 255) result.Red = 255;
+                red = temperature - 60;
+                red = 329.698727446 * (Math.Pow(red, -0.1332047592));
+                if (red < 0) red = 0;
+                if (red > 255) red = 255;
             }
 
+            // Green
+            double green;
             if (temperature <= 66)
             {
-                result.Green = temperature;
-                result.Green = 99.4708025861 * Math.Log(result.Green) - 161.1195681661;
-                if (result.Green < 0) result.Green = 0;
-                if (result.Green > 255) result.Green = 255;
+                green = temperature;
+                green = 99.4708025861 * Math.Log(green) - 161.1195681661;
+                if (green < 0) green = 0;
+                if (green > 255) green = 255;
             }
             else
             {
-                result.Green = temperature - 60;
-                result.Green = 288.1221695283 * (Math.Pow(result.Green, -0.0755148492));
-                if (result.Green < 0) result.Green = 0;
-                if (result.Green > 255) result.Green = 255;
+                green = temperature - 60;
+                green = 288.1221695283 * (Math.Pow(green, -0.0755148492));
+                if (green < 0) green = 0;
+                if (green > 255) green = 255;
             }
 
+            // Blue
+            double blue;
             if (temperature >= 66)
             {
-                result.Blue = 255;
+                blue = 255;
             }
             else
             {
-                result.Blue = temperature - 10;
-                result.Blue = 138.5177312231 * Math.Log(result.Blue) - 305.0447927307;
-                if (result.Blue < 0) result.Blue = 0;
-                if (result.Blue > 255) result.Blue = 255;
+                blue = temperature - 10;
+                blue = 138.5177312231 * Math.Log(blue) - 305.0447927307;
+                if (blue < 0) blue = 0;
+                if (blue > 255) blue = 255;
             }
 
-            result.Red /= 255;
-            result.Green /= 255;
-            result.Blue /= 255;
+            red /= 255;
+            green /= 255;
+            blue /= 255;
 
-            return result;
+            return new ColorAdjustment(red, green, blue);
         }
     }
 }

@@ -1,22 +1,27 @@
 ﻿
 
+using System;
+
 namespace Mlux.Lib.Display
 {
-    public struct ColorAdjustment
+    public struct ColorAdjustment : IEquatable<ColorAdjustment>
     {
-        public double Red;
-        public double Green;
-        public double Blue;
+        public readonly double Red;
+        public readonly double Green;
+        public readonly double Blue;
 
         public static readonly ColorAdjustment Default = new ColorAdjustment(1, 1, 1);
 
-        public ColorAdjustment(double r, double g, double b)
+        public ColorAdjustment(double red, double green, double blue)
         {
-            Red = r;
-            Green = g;
-            Blue = b;
+            Red = red;
+            Green = green;
+            Blue = blue;
         }
 
-        
+        public bool Equals(ColorAdjustment other)
+        {
+            return other.Red == Red && other.Green == Green && other.Blue == Blue;
+        }
     }
 }

@@ -26,7 +26,7 @@ namespace Mlux.Lib.Time
 
         public override string ToString()
         {
-            return String.Format("{0} with name {1} and value {2}", GetType(), Name, Value);
+            return $"{GetType()} with name {Name} and value {Value}";
         }
     }
 }

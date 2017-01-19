@@ -10,7 +10,8 @@ namespace Mlux.Lib.Time
     {
         public List<NodeProperty> Properties { get; private set; }
 
-		[XmlIgnore]
+        // TimeSpan is not Serializable so TimeOfDayDateTime is serialized
+        [XmlIgnore]
         public TimeSpan TimeOfDay { get; set; }
 
 		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
@@ -32,12 +33,12 @@ namespace Mlux.Lib.Time
 
         public TimeNode(TimeSpan timeOfDay) : this()
         {
-            this.TimeOfDay = timeOfDay;
+            TimeOfDay = timeOfDay;
         }
 
         public override string ToString()
         {
-            return String.Format("{0} at {1} with {2} properties", GetType(), TimeOfDay, Properties.Count);
+            return $"{GetType()} at {TimeOfDay} with {Properties.Count} properties";
         }
     }
 }

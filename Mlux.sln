@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mlux", "Mlux\Mlux.csproj", "{CFE4FE09-390E-4E91-95EA-11BC396E7F8F}"
 EndProject
@@ -16,9 +16,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F145B15B-80CD-400B-83FC-758CFD13AC0C}"
 	ProjectSection(SolutionItems) = preProject
 		Local.testsettings = Local.testsettings
-		Mlux.vsmdi = Mlux.vsmdi
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mlux.Wpf", "Mlux.Wpf\Mlux.Wpf.csproj", "{8D27A130-D5C4-4892-9D7E-783CE2400B2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +38,10 @@ Global
 		{15461527-093B-4ACB-BD57-8614E1C99799}.Debug|x86.Build.0 = Debug|x86
 		{15461527-093B-4ACB-BD57-8614E1C99799}.Release|x86.ActiveCfg = Release|x86
 		{15461527-093B-4ACB-BD57-8614E1C99799}.Release|x86.Build.0 = Release|x86
+		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Debug|x86.ActiveCfg = Debug|x86
+		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Debug|x86.Build.0 = Debug|x86
+		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Release|x86.ActiveCfg = Release|x86
+		{8D27A130-D5C4-4892-9D7E-783CE2400B2E}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -47,6 +51,7 @@ Global
 		{81E838A0-6802-46B8-B13B-07E49C5EB0A7} = {E7A53269-5906-483C-86F6-3EBF1373E699}
 		{15461527-093B-4ACB-BD57-8614E1C99799} = {6F7AC449-0D29-4149-B69D-58FBDBF7DEC6}
 		{F145B15B-80CD-400B-83FC-758CFD13AC0C} = {6F7AC449-0D29-4149-B69D-58FBDBF7DEC6}
+		{8D27A130-D5C4-4892-9D7E-783CE2400B2E} = {E7A53269-5906-483C-86F6-3EBF1373E699}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Mlux.vsmdi

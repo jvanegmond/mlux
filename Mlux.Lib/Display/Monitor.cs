@@ -5,150 +5,129 @@ using NLog;
 
 namespace Mlux.Lib.Display
 {
-    public class Monitor : IDisposable
+    public class Monitor : IMonitor
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger _log = LogManager.GetCurrentClassLogger();
 
-        public const int DefaultGamma = 129;
-        private RAMP _baseRamp;
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr GetDC(IntPtr hWnd);
+        private const int _defaultGamma = 129;
+        private readonly GammaRamp _baseGammaRamp;
 
         [DllImport("gdi32.dll")]
-        public static extern int GetDeviceGammaRamp(IntPtr hDC, ref RAMP lpRamp);
+        public static extern int GetDeviceGammaRamp(IntPtr hDc, ref GammaRamp lpGammaRamp);
 
         [DllImport("gdi32.dll")]
-        public static extern bool SetDeviceGammaRamp(IntPtr hDC, ref RAMP lpRamp);
+        public static extern bool SetDeviceGammaRamp(IntPtr hDc, ref GammaRamp lpGammaRamp);
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        public struct RAMP
+        private readonly IntPtr _hMonitor;
+        private readonly IntPtr _hdcMonitor;
+
+        public bool SupportBrightness { get; }
+        public uint MinBrightness { get; private set; }
+        public uint MaxBrightness { get; private set; }
+        public uint Brightness { get; private set; }
+        public uint InitialBrightness { get; }
+
+        public Monitor(IntPtr hMonitor, IntPtr hdcMonitor)
         {
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
-            public UInt16[] Red;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
-            public UInt16[] Green;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
-            public UInt16[] Blue;
-        }
+            _hMonitor = hMonitor;
+            _hdcMonitor = hdcMonitor;
 
-        private uint _physicalMonitorsCount = 0;
-        private MonitorStructures.PHYSICAL_MONITOR[] _physicalMonitorArray;
-
-        private IntPtr _hMonitor;
-
-        private uint _minValue = 0;
-        private uint _maxValue = 0;
-        private uint _currentValue = 0;
-
-
-        [DllImport("user32.dll", SetLastError = false)]
-        public static extern IntPtr GetDesktopWindow();
-
-        public Monitor()
-        {
-            var windowHandle = GetDesktopWindow();
-
-            uint dwFlags = 0u;
-            IntPtr ptr = MonitorMethods.MonitorFromWindow(windowHandle, dwFlags);
-            if (!MonitorMethods.GetNumberOfPhysicalMonitorsFromHMONITOR(ptr, ref _physicalMonitorsCount))
+            // Get the current brightness
+            try
             {
-                throw new Exception("Cannot get monitor count!");
+                SupportBrightness = true; // Set this first otherwise GetBrightness returns without doing work
+                GetBrightness();
+                InitialBrightness = Brightness;
             }
-            _physicalMonitorArray = new MonitorStructures.PHYSICAL_MONITOR[_physicalMonitorsCount];
-
-            if (!MonitorMethods.GetPhysicalMonitorsFromHMONITOR(ptr, _physicalMonitorsCount, _physicalMonitorArray))
+            catch (Exception err)
             {
-                throw new Exception("Cannot get phisical monitor handle!");
+                _log.Log(LogLevel.Error, err, "Unable to get brightness");
+                SupportBrightness = false;
             }
-            _hMonitor = _physicalMonitorArray[0].hPhysicalMonitor;
 
-            if (!MonitorMethods.GetMonitorBrightness(_hMonitor, ref _minValue, ref _currentValue, ref _maxValue))
+            // Get the current gamma Ramp
+            try
             {
-                throw new Exception("Cannot get monitor brightness!");
+                var ramp = GetCurrentGammaRamp();
+                _baseGammaRamp = ramp;
+            }
+            catch (Exception err)
+            {
+                _log.Log(LogLevel.Error, err, "Unable to get base gamma ramp");
             }
         }
 
-        public void SetBrightness(int newValue)
+        public void SetBrightness(uint brightness)
         {
-            newValue = Math.Min(newValue, Math.Max(0, newValue));
-            _currentValue = (_maxValue - _minValue) * (uint)newValue / 100u + _minValue;
-            MonitorMethods.SetMonitorBrightness(_hMonitor, _currentValue);
-        }
+            if (!SupportBrightness) return;
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (_physicalMonitorsCount > 0)
-                {
-                    MonitorMethods.DestroyPhysicalMonitors(_physicalMonitorsCount, _physicalMonitorArray);
-                }
-            }
+            brightness = Math.Min(brightness, Math.Max(0, brightness));
+            Brightness = (MaxBrightness - MinBrightness) * (uint)brightness / 100u + MinBrightness;
+            MonitorMethods.SetMonitorBrightness(_hMonitor, Brightness);
         }
 
         public byte GetBrightness()
         {
-            MonitorMethods.GetMonitorBrightness(_hMonitor, ref _minValue, ref _currentValue, ref _maxValue);
-            return (byte)_currentValue;
+            if (!SupportBrightness) return 0;
+
+            uint brightness = 0;
+            uint minBrightness = 0;
+            uint maxBrightness = 0;
+            if (!MonitorMethods.GetMonitorBrightness(_hMonitor, ref minBrightness, ref brightness, ref maxBrightness))
+            {
+                throw new ApplicationException("Unable to retrieve brightness through GetMonitorBrightness call.");
+            }
+            MinBrightness = minBrightness;
+            MaxBrightness = maxBrightness;
+            Brightness = brightness;
+            return (byte)Brightness;
         }
 
-        public RAMP GetCurrentGammaRAMP()
+        public GammaRamp GetCurrentGammaRamp()
         {
-            var result = new RAMP();
-            GetDeviceGammaRamp(GetDC(IntPtr.Zero), ref result);
+            var result = new GammaRamp();
+            GetDeviceGammaRamp(_hdcMonitor, ref result);
             return result;
         }
 
-        public void SetBaseGammaRAMP(RAMP baseRamp)
+        public void SetColorProfile(ColorAdjustment adjustment, int gamma = _defaultGamma)
         {
-            this._baseRamp = baseRamp;
-        }
-
-        public void SetColorProfile(ColorAdjustment adjustment, int gamma = DefaultGamma)
-        {
-            if (_baseRamp.Blue == null || _baseRamp.Red == null || _baseRamp.Green == null)
+            if (_baseGammaRamp.Blue == null || _baseGammaRamp.Red == null || _baseGammaRamp.Green == null)
             {
-                Log.Warn("The monitors current gamma ramp is unavailable. Falling back to default gamma ramp.");
+                throw new ApplicationException("The monitors current gamma ramp is unavailable. Falling back to default gamma ramp.");
             }
 
             if (gamma <= 256 && gamma >= 1)
             {
-                var ramp = new RAMP { Red = new ushort[256], Green = new ushort[256], Blue = new ushort[256] };
+                var ramp = new GammaRamp { Red = new ushort[256], Green = new ushort[256], Blue = new ushort[256] };
 
                 for (int i = 1; i < 256; i++)
                 {
 
                     ushort r, g, b;
-                    if (_baseRamp.Red == null)
+                    if (_baseGammaRamp.Red == null)
                     {
                         r = (ushort)(i * (gamma + 128));
                     }
                     else
                     {
-                        r = _baseRamp.Red[i];
+                        r = _baseGammaRamp.Red[i];
                     }
-                    if (_baseRamp.Blue == null)
+                    if (_baseGammaRamp.Blue == null)
                     {
                         b = (ushort)(i * (gamma + 128));
                     }
                     else
                     {
-                        b = _baseRamp.Blue[i];
+                        b = _baseGammaRamp.Blue[i];
                     }
-                    if (_baseRamp.Green == null)
+                    if (_baseGammaRamp.Green == null)
                     {
                         g = (ushort)(i * (gamma + 128));
                     }
                     else
                     {
-                        g = _baseRamp.Green[i];
+                        g = _baseGammaRamp.Green[i];
                     }
 
                     ramp.Red[i] = (ushort)(r * adjustment.Red);
@@ -156,15 +135,13 @@ namespace Mlux.Lib.Display
                     ramp.Blue[i] = (ushort)(b * adjustment.Blue);
                 }
 
-                SetDeviceGammaRamp(GetDC(IntPtr.Zero), ref ramp);
+                SetDeviceGammaRamp(_hdcMonitor, ref ramp);
             }
         }
 
-        private static float Clamp(float value, float min, float max)
+        public void Reset()
         {
-            if (value > max) return max;
-            if (value < min) return min;
-            return value;
+            if (SupportBrightness) SetBrightness(InitialBrightness);
         }
     }
 }

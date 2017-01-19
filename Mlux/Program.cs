@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using Mlux.Wpf;
 using NLog;
 
 namespace Mlux
 {
-    static class Program
+    internal static class Program
     {
-        private static Logger _log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger _log = LogManager.GetCurrentClassLogger();
 
         [STAThread]
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             bool startHidden = false;
 
@@ -26,11 +27,14 @@ namespace Mlux
 
             _log.Info("Mlux starting");
 
-            _log.Info(() => String.Format("Start hidden parameter: {0}", startHidden));
+            _log.Info(() => $"Start hidden parameter: {startHidden}");
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm(startHidden));
+            //Application.EnableVisualStyles();
+            //Application.SetCompatibleTextRenderingDefault(false);
+            //Application.Run(new MainForm(startHidden));
+
+            var window = new WindowManager();
+            window.Start(startHidden);
         }
     }
 }

@@ -11,14 +11,14 @@ namespace Mlux.Lib
 {
     public static class TimeProfileSerializer
     {
-        static readonly XmlSerializer Serializer = new XmlSerializer(typeof(TimeProfile));
+        private static readonly XmlSerializer _serializer = new XmlSerializer(typeof(TimeProfile));
 
         public static string Serialize(TimeProfile profile)
         {
             var sb = new StringBuilder();
             var stream = new StringWriter(sb);
 
-            Serializer.Serialize(stream, profile);
+            _serializer.Serialize(stream, profile);
 
             return sb.ToString();
         }
@@ -26,7 +26,7 @@ namespace Mlux.Lib
         public static TimeProfile Deserialize(string profile)
         {
             var reader = new StringReader(profile);
-            var result = (TimeProfile)Serializer.Deserialize(reader);
+            var result = (TimeProfile)_serializer.Deserialize(reader);
             return result;
         }
 
