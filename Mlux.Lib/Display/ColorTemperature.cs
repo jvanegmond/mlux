@@ -1,14 +1,19 @@
 ﻿using System;
+using NLog;
 
 namespace Mlux.Lib.Display
 {
     public static class ColorTemperature
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// Turns a temperature (between 0K and 70000K) into a color profile.
         /// </summary>
         public static ColorAdjustment GetColorProfile(double temperature)
         {
+            Log.Debug($"GetColorProfile {temperature}K");
+
             // Code from http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
 
             temperature = temperature / 100;

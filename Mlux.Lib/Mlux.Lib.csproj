@@ -62,6 +62,7 @@
     <Compile Include="Database\TimeProfileSerializer.cs" />
     <Compile Include="Time\DefaultTimeProfile.cs" />
     <Compile Include="Time\LinearNodeInterpolation.cs" />
+    <Compile Include="Time\TimeProvider.cs" />
     <Compile Include="Time\TimeProfile.cs" />
     <Compile Include="Time\NodeProperty.cs" />
     <Compile Include="Time\TimeNode.cs" />

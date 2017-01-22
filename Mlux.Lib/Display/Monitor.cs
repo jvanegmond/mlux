@@ -91,6 +91,8 @@ namespace Mlux.Lib.Display
                     throw new ApplicationException("Unable to retrieve brightness through GetMonitorBrightness call.");
                 }
 
+                Log.Info($"Brightness {brightness} Max {maxBrightness} min {minBrightness}");
+
                 MinBrightness = minBrightness;
                 MaxBrightness = maxBrightness;
                 return (int)brightness;
@@ -106,6 +108,8 @@ namespace Mlux.Lib.Display
                 brightness = (MaxBrightness - MinBrightness) * brightness / 100u + MinBrightness;
                 foreach (var physicalMonitor in _physicalMonitors)
                 {
+                    Log.Info($"Set brightness {physicalMonitor.hPhysicalMonitor} to {brightness}");
+
                     MonitorMethods.SetMonitorBrightness(physicalMonitor.hPhysicalMonitor, brightness);
                 }
             }
@@ -131,6 +135,8 @@ namespace Mlux.Lib.Display
             {
                 throw new ApplicationException("The monitors current gamma ramp is unavailable.");
             }
+
+            Log.Info($"SetColorProfile {adjustment}, gamma {gamma}");
 
             if (gamma <= 256 && gamma >= 1)
             {

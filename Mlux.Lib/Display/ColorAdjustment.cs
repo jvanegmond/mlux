@@ -23,5 +23,10 @@ namespace Mlux.Lib.Display
         {
             return other.Red == Red && other.Green == Green && other.Blue == Blue;
         }
+
+        public override string ToString()
+        {
+            return $"Adjust {Red} {Green} {Blue}";
+        }
     }
 }

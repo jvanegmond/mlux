@@ -107,7 +107,7 @@ namespace Mlux.Wpf
             if (_profile == null) return;
 
             // Draw the current position
-            var time = DateTime.Now;
+            var time = TimeProvider.Now;
             var w = time.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
             //var h = 1d - GetTemperatureAsPercentageOfMax(Convert.ToInt32(_profile.GetCurrentValue(time, NodeProperty.ColorTemperature)));
             var h = 100; // TODO: Fix me
