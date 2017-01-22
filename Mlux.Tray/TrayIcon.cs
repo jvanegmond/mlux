@@ -12,12 +12,12 @@ namespace Mlux.Tray
         public event TrayIconClickedDelegate ExitClick;
         public event TrayIconClickedDelegate MainClick;
 
-        private static readonly Logger _log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private NotifyIcon _trayIcon;
 
         public TrayIcon()
         {
-            _log.Debug("Loading tray icon");
+            Log.Debug("Loading tray icon");
             
             var trayMenu = new ContextMenu();
             trayMenu.MenuItems.Add("Exit", TrayIconOnExit);
@@ -40,7 +40,7 @@ namespace Mlux.Tray
 
         private void TrayIconOnClick(object sender, EventArgs e)
         {
-            _log.Info("Tray icon click");
+            Log.Info("Tray icon click");
 
             MainClick?.Invoke(this, new EventArgs());
         }

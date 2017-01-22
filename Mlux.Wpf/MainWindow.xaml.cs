@@ -28,20 +28,21 @@ namespace Mlux.Wpf
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static readonly Logger _log = LogManager.GetCurrentClassLogger();
-        private readonly Monitors _allMonitors;
-        private const string _savedProfilePath = "profile.xml";
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private const string SavedProfilePath = "profile.xml";
 
-        private TimeProfile _profile;
-        private TrayIcon _trayIcon;
+        private readonly TimeProfile _profile;
+        private readonly TrayIcon _trayIcon;
+        private readonly TimeKeeper _timeKeeper;
+        private readonly TimeNodeView _currentTimeNodeView;
+        private readonly TimeNodeView _nextTimeNodeView;
+
         private SettingsWindow _settings;
-        private TimeKeeper _timeKeeper;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            _allMonitors = new Monitors();
             Closed += MainWindow_Closed;
 
             _profile = LoadProfile();
@@ -51,9 +52,38 @@ namespace Mlux.Wpf
             _trayIcon.ExitClick += _trayIcon_ExitClick;
 
             _timeKeeper = new TimeKeeper(_profile);
+            _timeKeeper.NodeElapsed += TimeKeeperNodeElapsed;
+            _timeKeeper.CurrentChanged += TimeKeeperCurrentChanged;
+            _timeKeeper.Start();
 
-            CurrentNode.DataContext = new TimeNodeView(_timeKeeper.Current());
-            NextNode.DataContext = new TimeNodeView(_timeKeeper.Next());
+            _currentTimeNodeView = new TimeNodeView();
+            _nextTimeNodeView = new TimeNodeView();
+            CurrentNode.DataContext = _currentTimeNodeView;
+            NextNode.DataContext = _nextTimeNodeView;
+
+            SetCurrentValues();
+            _nextTimeNodeView.CopyFrom(_timeKeeper.Next());
+        }
+
+        private void SetCurrentValues()
+        {
+            // Show current brightness and color temperature
+            _currentTimeNodeView.Brightness = (int)_timeKeeper.GetCurrentValue(NodeProperty.Brightness);
+            _currentTimeNodeView.Temperature = (int)_timeKeeper.GetCurrentValue(NodeProperty.ColorTemperature);
+
+            // Show time remaining on current node in TimeOfDay spot
+            var remaining = _timeKeeper.Next().TimeOfDay - TimeUtil.GetRelativeTime(DateTime.Now);
+            _currentTimeNodeView.TimeOfDay = remaining;
+        }
+
+        private void TimeKeeperCurrentChanged(object sender, EventArgs e)
+        {
+            SetCurrentValues();
+        }
+
+        private void TimeKeeperNodeElapsed(object sender, EventArgs e)
+        {
+            _nextTimeNodeView.CopyFrom(_timeKeeper.Next());
         }
 
         private void _trayIcon_ExitClick(TrayIcon icon, EventArgs e)
@@ -82,28 +112,35 @@ namespace Mlux.Wpf
 
         private static TimeProfile LoadProfile()
         {
-            _log.Info("Loading profile");
+            Log.Info("Loading profile");
 
             TimeProfile result;
-            if (File.Exists(_savedProfilePath))
+            if (File.Exists(SavedProfilePath))
             {
-                var savedProfileData = File.ReadAllText(_savedProfilePath, Encoding.UTF8);
+                var savedProfileData = File.ReadAllText(SavedProfilePath, Encoding.UTF8);
                 result = TimeProfileSerializer.Deserialize(savedProfileData);
             }
             else
             {
-                result = TimeProfile.GetDefault();
+                result = DefaultTimeProfile.Create();
             }
 
-            _log.Info("Profile loaded with {0} time nodes", result.Nodes.Count);
+            Log.Info("Profile loaded with {0} nodes", result.Nodes.Count);
+
+            foreach (var node in result.Nodes)
+            {
+                Log.Info($"Node {node}");
+            }
 
             return result;
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
         {
+            Log.Info("Main window closed");
+
             _trayIcon.Dispose();
-            _allMonitors.Reset();
+            _timeKeeper.Dispose();
         }
 
         private void Open_settings_OnClick(object sender, RoutedEventArgs e)

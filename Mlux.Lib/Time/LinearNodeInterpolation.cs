@@ -7,7 +7,7 @@ namespace Mlux.Lib.Time
 {
     public static class LinearNodeInterpolation
     {
-        public static object Interpolate(DateTime time, TimeNode currentNode, TimeNode nextNode, string propertyName)
+        public static object Interpolate(TimeSpan time, TimeNode currentNode, TimeNode nextNode, string propertyName)
         {
             var currentProperty = currentNode.Properties.First(prop => prop.Name == propertyName);
             var nextProperty = nextNode.Properties.First(prop => prop.Name == propertyName);
@@ -20,8 +20,7 @@ namespace Mlux.Lib.Time
 
             if (currentValue.GetType() != nextValue.GetType()) return null;
             
-            var relTime = TimeUtil.GetRelativeTime(time);
-            var percentage = GetRelTimePercentage(relTime, currentNode.TimeOfDay, nextNode.TimeOfDay);
+            var percentage = GetRelTimePercentage(time, currentNode.TimeOfDay, nextNode.TimeOfDay);
 
             return Interpolate(currentValue, nextValue, percentage);
         }

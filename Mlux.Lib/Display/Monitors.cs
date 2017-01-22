@@ -5,13 +5,28 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using NLog;
 
 namespace Mlux.Lib.Display
 {
     public class Monitors : IMonitor
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         [DllImport("user32.dll")]
         public static extern IntPtr GetDC(IntPtr hWnd);
+
+        public int Brightness
+        {
+            get { return _monitors[0].Brightness; }
+            set
+            {
+                foreach (var monitor in _monitors)
+                {
+                    monitor.Brightness = value;
+                }
+            }
+        }
 
         private readonly List<Monitor> _monitors = new List<Monitor>();
 
@@ -29,16 +44,11 @@ namespace Mlux.Lib.Display
             return _monitors.AsReadOnly();
         }
 
-        public byte GetBrightness()
-        {
-            return _monitors[0].GetBrightness();
-        }
-
-        public void SetBrightness(uint brightness)
+        public void SetColorProfile(ColorAdjustment adjustment)
         {
             foreach (var monitor in _monitors)
             {
-                monitor.SetBrightness(brightness);
+                monitor.SetColorProfile(adjustment);
             }
         }
 

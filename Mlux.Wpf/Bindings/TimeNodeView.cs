@@ -12,7 +12,6 @@ namespace Mlux.Wpf.Bindings
         private int _brightness;
         private int _temperature;
         private TimeSpan _timeOfDay;
-        public TimeNode Node { get; set; }
 
         public int Brightness
         {
@@ -22,10 +21,7 @@ namespace Mlux.Wpf.Bindings
                 var changed = _brightness != value;
                 _brightness = value;
 
-                if (changed)
-                {
-                    OnPropertyChanged(nameof(Brightness));
-                }
+                if (changed) OnPropertyChanged();
             }
         }
 
@@ -37,10 +33,7 @@ namespace Mlux.Wpf.Bindings
                 var changed = _temperature != value;
                 _temperature = value;
 
-                if (changed)
-                {
-                    OnPropertyChanged(nameof(Temperature));
-                }
+                if (changed) OnPropertyChanged();
 
             }
         }
@@ -53,10 +46,7 @@ namespace Mlux.Wpf.Bindings
                 var changed = _timeOfDay != value;
                 _timeOfDay = value;
 
-                if (changed)
-                {
-                    OnPropertyChanged(nameof(TimeOfDay));
-                }
+                if (changed) OnPropertyChanged();
             }
         }
 
@@ -69,7 +59,11 @@ namespace Mlux.Wpf.Bindings
 
         public TimeNodeView(TimeNode node)
         {
-            Node = node;
+            CopyFrom(node);
+        }
+
+        public void CopyFrom(TimeNode node)
+        {
             Brightness = (int)node.Properties.First(_ => _.Name == NodeProperty.Brightness).Value;
             Temperature = (int)node.Properties.First(_ => _.Name == NodeProperty.ColorTemperature).Value;
             TimeOfDay = node.TimeOfDay;

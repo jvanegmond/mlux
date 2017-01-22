@@ -7,9 +7,9 @@ namespace Mlux.Lib.Display
 {
     public class Monitor : IMonitor
     {
-        private static readonly Logger _log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private const int _defaultGamma = 129;
+        private const int DefaultGamma = 129;
         private readonly GammaRamp _baseGammaRamp;
 
         [DllImport("gdi32.dll")]
@@ -26,13 +26,14 @@ namespace Mlux.Lib.Display
         public bool SupportBrightness { get; }
         public uint MinBrightness { get; private set; }
         public uint MaxBrightness { get; private set; }
-        public uint Brightness { get; private set; }
-        public uint InitialBrightness { get; }
+        public int InitialBrightness { get; }
 
         public Monitor(IntPtr hMonitor, IntPtr hdcMonitor)
         {
             _hMonitor = hMonitor;
             _hdcMonitor = hdcMonitor;
+
+            Log.Info($"Create monitor hMonitor:{_hMonitor} hdcMonitor:{_hdcMonitor}");
 
             // Get the current brightness
             try
@@ -51,13 +52,16 @@ namespace Mlux.Lib.Display
                     throw new ApplicationException($"Cannot GetPhysicalMonitorsFromHMONITOR for hmonitor {_hMonitor}");
                 }
 
-                GetBrightness();
-
                 InitialBrightness = Brightness;
+
+                foreach (var monitor in _physicalMonitors)
+                {
+                    Log.Info($"Monitor physicalmonitor handle:{monitor.hPhysicalMonitor} description:{monitor.szPhysicalMonitorDescription} with brightness {InitialBrightness}");
+                }
             }
             catch (Exception err)
             {
-                _log.Log(LogLevel.Error, err, "Unable to get brightness");
+                Log.Log(LogLevel.Error, err, "Unable to get brightness. Brightness will not be supported.");
                 SupportBrightness = false;
             }
 
@@ -69,44 +73,57 @@ namespace Mlux.Lib.Display
             }
             catch (Exception err)
             {
-                _log.Log(LogLevel.Error, err, "Unable to get base gamma ramp");
+                Log.Log(LogLevel.Error, err, "Unable to get base gamma ramp");
             }
         }
 
-        public void SetBrightness(uint brightness)
+        public int Brightness
         {
-            if (!SupportBrightness) return;
-
-            brightness = Math.Min(brightness, Math.Max(0, brightness));
-            Brightness = (MaxBrightness - MinBrightness) * (uint)brightness / 100u + MinBrightness;
-            MonitorMethods.SetMonitorBrightness(_physicalMonitors[0].hPhysicalMonitor, Brightness);
-        }
-
-        public byte GetBrightness()
-        {
-            if (!SupportBrightness) return 0;
-
-            uint brightness = 0;
-            uint minBrightness = 0;
-            uint maxBrightness = 0;
-            if (!MonitorMethods.GetMonitorBrightness(_physicalMonitors[0].hPhysicalMonitor, ref minBrightness, ref brightness, ref maxBrightness))
+            get
             {
-                throw new ApplicationException("Unable to retrieve brightness through GetMonitorBrightness call.");
+                if (!SupportBrightness) throw new ApplicationException("Setting brightness is not supported on this monitor");
+
+                uint brightness = 0;
+                uint minBrightness = 0;
+                uint maxBrightness = 0;
+                if (!MonitorMethods.GetMonitorBrightness(_physicalMonitors[0].hPhysicalMonitor, ref minBrightness, ref brightness, ref maxBrightness))
+                {
+                    throw new ApplicationException("Unable to retrieve brightness through GetMonitorBrightness call.");
+                }
+
+                MinBrightness = minBrightness;
+                MaxBrightness = maxBrightness;
+                return (int)brightness;
             }
-            MinBrightness = minBrightness;
-            MaxBrightness = maxBrightness;
-            Brightness = brightness;
-            return (byte)Brightness;
+            set
+            {
+                if (!SupportBrightness) throw new ApplicationException("Setting brightness is not supported on this monitor");
+
+                var brightness = (uint)value;
+                brightness = Math.Min(brightness, Math.Max(0, brightness));
+                brightness = (MaxBrightness - MinBrightness) * brightness / 100u + MinBrightness;
+                foreach (var physicalMonitor in _physicalMonitors)
+                {
+                    MonitorMethods.SetMonitorBrightness(physicalMonitor.hPhysicalMonitor, brightness);
+                }
+            }
         }
 
         public GammaRamp GetCurrentGammaRamp()
         {
             var result = new GammaRamp();
-            GetDeviceGammaRamp(_hdcMonitor, ref result);
+            int success = GetDeviceGammaRamp(_hdcMonitor, ref result);
+            Log.Debug($"GetDeviceGammaRamp handle:{_hdcMonitor} with result {success}");
+
             return result;
         }
 
-        public void SetColorProfile(ColorAdjustment adjustment, int gamma = _defaultGamma)
+        public void SetColorProfile(ColorAdjustment adjustment)
+        {
+            SetColorProfile(adjustment, DefaultGamma);
+        }
+
+        public void SetColorProfile(ColorAdjustment adjustment, int gamma)
         {
             if (_baseGammaRamp.Blue == null || _baseGammaRamp.Red == null || _baseGammaRamp.Green == null)
             {
@@ -151,13 +168,14 @@ namespace Mlux.Lib.Display
                     ramp.Blue[i] = (ushort)(b * adjustment.Blue);
                 }
 
-                SetDeviceGammaRamp(_hdcMonitor, ref ramp);
+                var success = SetDeviceGammaRamp(_hdcMonitor, ref ramp);
+                Log.Debug($"SetDeviceGammaRamp with result {success}");
             }
         }
 
         public void Reset()
         {
-            if (SupportBrightness) SetBrightness(InitialBrightness);
+            if (SupportBrightness) Brightness = (int)InitialBrightness;
         }
     }
 }

@@ -2,8 +2,7 @@
 {
     public interface IMonitor
     {
-        byte GetBrightness();
-        void SetBrightness(uint brightness);
+        int Brightness { get; set; }
         void SetColorProfile(ColorAdjustment adjustment, int gamma);
         void Reset();
     }
