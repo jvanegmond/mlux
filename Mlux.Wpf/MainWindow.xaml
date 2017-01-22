@@ -5,42 +5,63 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Mlux.Wpf" x:Class="Mlux.Wpf.MainWindow"
         mc:Ignorable="d"
-        Title="Mlux" Height="600" Width="900" Background="Black">
+        Title="Mlux" Height="300" Width="500" Background="Black"
+        ResizeMode="NoResize">
     <Grid>
-        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <StackPanel.Resources>
-                <Style TargetType="{x:Type StackPanel}">
-                    <Setter Property="Margin" Value="20"></Setter>
-                    <Setter Property="Width" Value="400"></Setter>
-                </Style>
-                <Style TargetType="{x:Type TextBlock}">
-                    <Setter Property="FontSize" Value="24"></Setter>
-                    <Setter Property="VerticalAlignment" Value="Center"></Setter>
-                </Style>
-            </StackPanel.Resources>
-            <StackPanel Orientation="Horizontal" Background="White">
-                <Canvas Width="76" Height="76" Clip="F1 M 0,0L 76,0L 76,76L 0,76L 0,0">
-                    <Path Width="25.3333" Height="42.75" Canvas.Left="25.3333" Canvas.Top="17.4167" Stretch="Fill" Fill="#FF000000" Data="F1 M 34.8333,60.1667L 34.8333,57.3958L 41.1667,58.5833L 41.1667,60.1667L 34.8333,60.1667 Z M 31.6666,55.0209L 31.6666,52.25L 44.3333,53.8334L 44.3333,56.6042L 31.6666,55.0209 Z M 44.3333,51.8542L 31.6666,50.2709L 31.6666,47.5L 44.3333,49.0834L 44.3333,51.8542 Z M 38,17.4167C 44.9956,17.4167 50.6667,23.4422 50.6667,30.875C 50.6667,35.8565 44.3333,40.7324 44.3333,42.5329L 44.3333,47.5L 31.6667,45.9167L 31.6667,42.5329C 31.6667,41.1667 25.3333,35.8565 25.3333,30.875C 25.3333,23.4422 31.0044,17.4167 38,17.4167 Z "/>
-                </Canvas>
-                <TextBlock>80%</TextBlock>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Background="White">
-                <Canvas Width="76" Height="76" Clip="F1 M 0,0L 76,0L 76,76L 0,76L 0,0">
-                    <Path Width="50.119" Height="49.9571" Canvas.Left="15.5424" Canvas.Top="10.5005" Stretch="Fill" Fill="#FF000000" Data="F1 M 62.2371,19.8246C 63.049,19.0127 64.2725,17.9583 65.6613,16.8261C 63.847,14.4594 61.7358,12.3324 59.3834,10.5005C 58.3342,11.8224 57.3514,12.9827 56.5712,13.763C 49.8537,20.4805 43.532,14.5546 41.2928,16.7938L 32.3362,25.7505L 33.4557,26.8701L 15.5424,40.3051C 18.5279,44.037 17.7816,44.7834 24.4991,51.5009C 31.2166,58.2185 31.963,57.4721 35.6949,60.4576L 49.1299,42.5443L 50.2495,43.6638L 59.2062,34.7072C 61.4454,32.468 55.5196,26.5421 62.2371,19.8246 Z M 35.1351,28.5495L 35.6949,29.1092L 32.3362,32.468L 36.8145,30.2288L 37.9341,31.3484L 34.8552,37.2262L 39.0537,32.468L 40.1732,33.5876L 34.0155,41.9845L 41.2928,34.7072L 43.532,36.9463L 38.2139,42.2644L 44.6516,38.0659L 45.7712,39.1855L 42.4124,44.7834L 46.8908,40.3051L 47.4505,40.8649L 37.0944,54.5798C 35.9748,53.4602 37.0944,50.1015 37.0944,47.8623C 36.8145,45.903 32.616,52.3406 30.3769,50.1015C 28.1377,47.8623 30.6568,47.5824 30.6568,45.3432C 30.6568,43.1041 27.8578,44.7834 25.6186,44.7834C 23.3795,44.7834 24.499,43.6638 24.499,41.4247C 24.499,39.1855 18.9011,40.8649 18.9011,40.8649L 35.1351,28.5495 Z "/>
-                </Canvas>
-                <TextBlock>6500K</TextBlock>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Background="White">
-                <Canvas Width="76" Height="76" Clip="F1 M 0,0L 76,0L 76,76L 0,76L 0,0">
-                    <Path Width="34.8333" Height="34.8333" Canvas.Left="20.5833" Canvas.Top="20.5833" Stretch="Fill" Fill="#FF000000" Data="F1 M 38,23.75C 46.7445,23.75 53.8333,30.8388 53.8333,39.5833C 53.8333,48.3278 46.7445,55.4167 38,55.4167C 29.2555,55.4167 22.1667,48.3278 22.1667,39.5833C 22.1667,30.8388 29.2555,23.75 38,23.75 Z M 38,27.7083C 31.4416,27.7083 26.125,33.025 26.125,39.5833C 26.125,46.1417 31.4416,51.4583 38,51.4583C 44.5584,51.4583 49.875,46.1417 49.875,39.5833C 49.875,33.025 44.5584,27.7083 38,27.7083 Z M 37.6042,30.875C 38.4786,30.875 39.1875,31.5839 39.1875,32.4583L 39.1875,38.3959L 45.125,38.3959C 45.9994,38.3959 46.7083,39.1047 46.7083,39.9792L 46.7083,40.7708C 46.7083,41.6453 45.9994,42.3542 45.125,42.3542L 38,42.3542C 37.2083,42.2222 36.4167,42.0903 35.9548,41.6285C 35.493,41.1667 35.3611,40.375 35.2292,39.5833L 35.2292,32.4583C 35.2292,31.5839 35.938,30.875 36.8125,30.875L 37.6042,30.875 Z M 49.0833,20.5833C 52.5811,20.5833 55.4167,23.4189 55.4167,26.9167C 55.4167,28.4256 54.889,29.8113 54.008,30.8993C 51.9429,27.1006 48.5651,24.1189 44.4835,22.5632C 45.6379,21.3439 47.2718,20.5833 49.0833,20.5833 Z M 26.9167,20.5834C 28.7282,20.5834 30.3621,21.3439 31.5165,22.5632C 27.4349,24.1189 24.0571,27.1006 21.992,30.8993C 21.111,29.8113 20.5833,28.4256 20.5833,26.9167C 20.5833,23.4189 23.4189,20.5834 26.9167,20.5834 Z "/>
-                </Canvas>
-                <TextBlock>9:00 AM</TextBlock>
-            </StackPanel>
-        </StackPanel>
+        <Grid Margin="10,10,10,25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50*"></ColumnDefinition>
+                <ColumnDefinition Width="15"></ColumnDefinition>
+                <ColumnDefinition Width="50*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="24"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <TextBlock Foreground="White" FontSize="14">Current</TextBlock>
+                <local:MainWindowNode x:Name="CurrentNode" Grid.Row="1"></local:MainWindowNode>
+            </Grid>
+            <Button Grid.Column="2" Click="NextNodeClick">
+                <Button.Resources>
+                    <Style TargetType="{x:Type Button}">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type Button}">
+                                    <ContentPresenter/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Resources>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="24"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <TextBlock Foreground="White" FontSize="14">Upcoming</TextBlock>
+                    <local:MainWindowNode x:Name="NextNode" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1"></local:MainWindowNode>
+                </Grid>
+            </Button>
+        </Grid>
 
-        <Button x:Name="OpenSettingsButton" Click="Open_settings_OnClick" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20">
-            <Canvas Width="76" Height="76" Clip="F1 M 0,0L 76,0L 76,76L 0,76L 0,0">
-                <Path Width="37.6263" Height="37.6262" Canvas.Left="19.1869" Canvas.Top="19.1868" Stretch="Fill" Fill="#FF000000" Data="F1 M 27.5314,21.8628L 33.0126,19.4224L 34.7616,23.3507C 36.6693,22.9269 38.6044,22.8903 40.4668,23.2026L 42.0083,19.1868L 47.6098,21.337L 46.0683,25.3528C 47.6612,26.3669 49.0747,27.6889 50.2088,29.2803L 54.1371,27.5313L 56.5776,33.0126L 52.6493,34.7616C 53.0731,36.6693 53.1097,38.6043 52.7974,40.4668L 56.8131,42.0083L 54.6629,47.6097L 50.6472,46.0683C 49.6331,47.6613 48.3111,49.0748 46.7197,50.2089L 48.4686,54.1372L 42.9874,56.5776L 41.2384,52.6493C 39.3307,53.0731 37.3957,53.1097 35.5333,52.7974L 33.9918,56.8131L 28.3903,54.6629L 29.9318,50.6472C 28.3388,49.6331 26.9252,48.3111 25.7911,46.7196L 21.8628,48.4686L 19.4224,42.9873L 23.3507,41.2383C 22.9269,39.3307 22.8903,37.3957 23.2026,35.5332L 19.1869,33.9918L 21.3371,28.3903L 25.3528,29.9318C 26.3669,28.3388 27.6889,26.9252 29.2804,25.7911L 27.5314,21.8628 Z M 34.3394,29.7781C 29.7985,31.7998 27.7564,37.1198 29.7781,41.6606C 31.7998,46.2015 37.1198,48.2436 41.6606,46.2219C 46.2015,44.2002 48.2436,38.8802 46.2219,34.3394C 44.2002,29.7985 38.8802,27.7564 34.3394,29.7781 Z "/>
+        <Button x:Name="OpenSettingsButton" Click="Open_settings_OnClick" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="5" Background="{x:Null}">
+            <Button.Resources>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <ContentPresenter/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Button.Resources>
+            <Canvas Width="37.6263" Height="37.6263" Clip="F1 M 0,0L 76,0L 76,76L 0,76L 0,0">
+                <Canvas.LayoutTransform>
+                    <ScaleTransform ScaleY="0.4" ScaleX="0.4"></ScaleTransform>
+                </Canvas.LayoutTransform>
+                <Path Width="37.6263" Height="37.6262" Stretch="Fill" Fill="LightSlateGray" Data="F1 M 27.5314,21.8628L 33.0126,19.4224L 34.7616,23.3507C 36.6693,22.9269 38.6044,22.8903 40.4668,23.2026L 42.0083,19.1868L 47.6098,21.337L 46.0683,25.3528C 47.6612,26.3669 49.0747,27.6889 50.2088,29.2803L 54.1371,27.5313L 56.5776,33.0126L 52.6493,34.7616C 53.0731,36.6693 53.1097,38.6043 52.7974,40.4668L 56.8131,42.0083L 54.6629,47.6097L 50.6472,46.0683C 49.6331,47.6613 48.3111,49.0748 46.7197,50.2089L 48.4686,54.1372L 42.9874,56.5776L 41.2384,52.6493C 39.3307,53.0731 37.3957,53.1097 35.5333,52.7974L 33.9918,56.8131L 28.3903,54.6629L 29.9318,50.6472C 28.3388,49.6331 26.9252,48.3111 25.7911,46.7196L 21.8628,48.4686L 19.4224,42.9873L 23.3507,41.2383C 22.9269,39.3307 22.8903,37.3957 23.2026,35.5332L 19.1869,33.9918L 21.3371,28.3903L 25.3528,29.9318C 26.3669,28.3388 27.6889,26.9252 29.2804,25.7911L 27.5314,21.8628 Z M 34.3394,29.7781C 29.7985,31.7998 27.7564,37.1198 29.7781,41.6606C 31.7998,46.2015 37.1198,48.2436 41.6606,46.2219C 46.2015,44.2002 48.2436,38.8802 46.2219,34.3394C 44.2002,29.7985 38.8802,27.7564 34.3394,29.7781 Z "/>
             </Canvas>
         </Button>
     </Grid>

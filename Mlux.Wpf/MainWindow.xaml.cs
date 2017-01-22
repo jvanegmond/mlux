@@ -14,8 +14,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Mlux.Lib;
+using Mlux.Lib.Database;
 using Mlux.Lib.Display;
 using Mlux.Lib.Time;
+using Mlux.Tray;
+using Mlux.Wpf.Bindings;
 using NLog;
 
 namespace Mlux.Wpf
@@ -32,6 +35,7 @@ namespace Mlux.Wpf
         private TimeProfile _profile;
         private TrayIcon _trayIcon;
         private SettingsWindow _settings;
+        private TimeKeeper _timeKeeper;
 
         public MainWindow()
         {
@@ -45,15 +49,20 @@ namespace Mlux.Wpf
             _trayIcon = new TrayIcon();
             _trayIcon.MainClick += _trayIcon_MainClick;
             _trayIcon.ExitClick += _trayIcon_ExitClick;
+
+            _timeKeeper = new TimeKeeper(_profile);
+
+            CurrentNode.DataContext = new TimeNodeView(_timeKeeper.Current());
+            NextNode.DataContext = new TimeNodeView(_timeKeeper.Next());
         }
 
         private void _trayIcon_ExitClick(TrayIcon icon, EventArgs e)
         {
+            // Close application
             this.Dispatcher.Invoke(() =>
             {
                 Application.Current.Shutdown();
             });
-            // Close application
         }
 
         private void _trayIcon_MainClick(TrayIcon icon, EventArgs e)
@@ -103,6 +112,11 @@ namespace Mlux.Wpf
             
             _settings.Profile = _profile;
             _settings.Show();
+        }
+
+        private void NextNodeClick(object sender, RoutedEventArgs e)
+        {
+            _timeKeeper.Skip();
         }
     }
 }

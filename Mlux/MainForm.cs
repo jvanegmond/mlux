@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using Mlux.Lib;
+using Mlux.Lib.Database;
 using Mlux.Lib.Display;
 using Mlux.Lib.Time;
 using NLog;

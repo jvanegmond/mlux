@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using NLog;
 
-namespace Mlux.Wpf
+namespace Mlux.Tray
 {
     public delegate void TrayIconClickedDelegate(TrayIcon icon, EventArgs e);
 

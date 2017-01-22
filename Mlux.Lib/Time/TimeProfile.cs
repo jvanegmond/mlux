@@ -56,7 +56,7 @@ namespace Mlux.Lib.Time
             var last = Nodes.FirstOrDefault(node => node.TimeOfDay > relTime);
             if (last != null) return last;
 
-            // if no nodes are found which are after the given time, return the first of today
+            // if no nodes are found which are after the given time, return the first of the next day
             return Nodes.FirstOrDefault();
         }
 

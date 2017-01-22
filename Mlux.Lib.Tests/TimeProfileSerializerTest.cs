@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Mlux.Lib.Database;
 using Mlux.Lib.Time;
 
 namespace Mlux.Lib.Tests
