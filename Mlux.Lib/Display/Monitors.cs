@@ -13,9 +13,6 @@ namespace Mlux.Lib.Display
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        [DllImport("user32.dll")]
-        public static extern IntPtr GetDC(IntPtr hWnd);
-
         public int Brightness
         {
             get { return _monitors[0].Brightness; }
@@ -32,8 +29,11 @@ namespace Mlux.Lib.Display
 
         public Monitors()
         {
-            MonitorMethods.EnumDisplayMonitors(GetDC(IntPtr.Zero), IntPtr.Zero, (IntPtr hMonitor, IntPtr hdcMonitor, ref Rectangle lprcMonitor, IntPtr dwData) =>
+            var zeroDc = MonitorMethods.GetDC(IntPtr.Zero);
+            MonitorMethods.EnumDisplayMonitors(zeroDc, IntPtr.Zero, (IntPtr hMonitor, IntPtr hdcMonitor, ref Rectangle lprcMonitor, IntPtr dwData) =>
             {
+                hdcMonitor = zeroDc; // Multi monitor bug? Can't get/set device gamma ramp with given hdcMonitor
+
                 _monitors.Add(new Monitor(hMonitor, hdcMonitor));
                 return true;
             }, IntPtr.Zero);

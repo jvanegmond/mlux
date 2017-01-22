@@ -6,6 +6,10 @@ namespace Mlux.Lib.Display
 {
     public static class MonitorMethods
     {
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetDC(IntPtr hWnd);
+
         public delegate bool MonitorEnumDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref Rectangle lprcMonitor, IntPtr dwData);
 
         [DllImport("user32.dll")]

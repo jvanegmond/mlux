@@ -99,6 +99,8 @@ namespace Mlux.Lib.Display
             {
                 if (!SupportBrightness) throw new ApplicationException("Setting brightness is not supported on this monitor");
 
+                if (Brightness == value) return;
+
                 var brightness = (uint)value;
                 brightness = Math.Min(brightness, Math.Max(0, brightness));
                 brightness = (MaxBrightness - MinBrightness) * brightness / 100u + MinBrightness;
@@ -127,7 +129,7 @@ namespace Mlux.Lib.Display
         {
             if (_baseGammaRamp.Blue == null || _baseGammaRamp.Red == null || _baseGammaRamp.Green == null)
             {
-                throw new ApplicationException("The monitors current gamma ramp is unavailable. Falling back to default gamma ramp.");
+                throw new ApplicationException("The monitors current gamma ramp is unavailable.");
             }
 
             if (gamma <= 256 && gamma >= 1)
@@ -169,13 +171,17 @@ namespace Mlux.Lib.Display
                 }
 
                 var success = SetDeviceGammaRamp(_hdcMonitor, ref ramp);
-                Log.Debug($"SetDeviceGammaRamp with result {success}");
+                Log.Debug($"SetDeviceGammaRamp {_hdcMonitor} with result {success}");
             }
         }
 
         public void Reset()
         {
-            if (SupportBrightness) Brightness = (int)InitialBrightness;
+            Log.Info($"{this} Start reset");
+
+            if (SupportBrightness) Brightness = InitialBrightness;
+
+            SetColorProfile(ColorAdjustment.Default);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Mlux.Lib.Time
 
         public override string ToString()
         {
-            return $"{GetType()} with name {Name} and value {Value}";
+            return $"PropertyName:{Name} Value:{Value}";
         }
     }
 }

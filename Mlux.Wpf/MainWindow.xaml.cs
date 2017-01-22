@@ -68,8 +68,8 @@ namespace Mlux.Wpf
         private void SetCurrentValues()
         {
             // Show current brightness and color temperature
-            _currentTimeNodeView.Brightness = (int)_timeKeeper.GetCurrentValue(NodeProperty.Brightness);
-            _currentTimeNodeView.Temperature = (int)_timeKeeper.GetCurrentValue(NodeProperty.ColorTemperature);
+            _currentTimeNodeView.Brightness = _timeKeeper.CurrentBrightness;
+            _currentTimeNodeView.Temperature = _timeKeeper.CurrentTemperature;
 
             // Show time remaining on current node in TimeOfDay spot
             var remaining = _timeKeeper.Next().TimeOfDay - TimeUtil.GetRelativeTime(DateTime.Now);
@@ -139,8 +139,8 @@ namespace Mlux.Wpf
         {
             Log.Info("Main window closed");
 
-            _trayIcon.Dispose();
             _timeKeeper.Dispose();
+            _trayIcon.Dispose();
         }
 
         private void Open_settings_OnClick(object sender, RoutedEventArgs e)

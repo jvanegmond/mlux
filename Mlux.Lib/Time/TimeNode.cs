@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 
 namespace Mlux.Lib.Time
 {
-	[Serializable]
+    [Serializable]
     public class TimeNode
     {
         public List<NodeProperty> Properties { get; private set; }
@@ -14,17 +14,18 @@ namespace Mlux.Lib.Time
         [XmlIgnore]
         public TimeSpan TimeOfDay { get; set; }
 
-		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-		public DateTime TimeOfDayDateTime {
-			get
-			{
-				return new DateTime(TimeOfDay.Ticks);
-			}
-			set
-			{
-				TimeOfDay = new TimeSpan(value.Ticks);
-			}
-		}
+        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+        public DateTime TimeOfDayDateTime
+        {
+            get
+            {
+                return new DateTime(TimeOfDay.Ticks);
+            }
+            set
+            {
+                TimeOfDay = new TimeSpan(value.Ticks);
+            }
+        }
 
         public TimeNode()
         {
@@ -38,7 +39,7 @@ namespace Mlux.Lib.Time
 
         public override string ToString()
         {
-            return $"{GetType()} at {TimeOfDay} with {Properties.Count} properties";
+            return $"{GetType()} at {TimeOfDay} with  ({string.Join(") (", Properties)})";
         }
     }
 }
