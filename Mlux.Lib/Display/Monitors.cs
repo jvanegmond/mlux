@@ -9,39 +9,51 @@ using NLog;
 
 namespace Mlux.Lib.Display
 {
-    public class Monitors : IMonitor
+    public class Monitors : ITemperatureMonitor
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public int Brightness
+        private readonly List<ITemperatureMonitor> _monitors;
+
+        public Monitors(IEnumerable<ITemperatureMonitor> monitors)
         {
-            get { return _monitors[0].Brightness; }
-            set
-            {
-                foreach (var monitor in _monitors)
-                {
-                    monitor.Brightness = value;
-                }
-            }
+            _monitors = monitors.ToList();
         }
 
-        private readonly List<Monitor> _monitors = new List<Monitor>();
-
-        public Monitors()
+        public static List<Monitor> Create()
         {
+            var result = new List<Monitor>();
+
             var zeroDc = MonitorMethods.GetDC(IntPtr.Zero);
             MonitorMethods.EnumDisplayMonitors(zeroDc, IntPtr.Zero, (IntPtr hMonitor, IntPtr hdcMonitor, ref Rectangle lprcMonitor, IntPtr dwData) =>
             {
                 hdcMonitor = zeroDc; // Multi monitor bug? Can't get/set device gamma ramp with given hdcMonitor
 
-                _monitors.Add(new Monitor(hMonitor, hdcMonitor));
+                result.Add(new Monitor(hMonitor, hdcMonitor));
                 return true;
             }, IntPtr.Zero);
+
+            return result;
         }
 
-        public IReadOnlyList<Monitor> GetMonitors()
+        public IReadOnlyList<ITemperatureMonitor> GetMonitors()
         {
             return _monitors.AsReadOnly();
+        }
+
+        public bool SupportBrightness => _monitors.Any(_ => _.SupportBrightness);
+
+        public int GetBrightness()
+        {
+            return _monitors[0].GetBrightness();
+        }
+
+        public void SetBrightness(int brightness)
+        {
+            foreach (var monitor in _monitors)
+            {
+                monitor.SetBrightness(brightness);
+            }
         }
 
         public void SetColorProfile(ColorAdjustment adjustment)
@@ -65,6 +77,19 @@ namespace Mlux.Lib.Display
             foreach (var monitor in _monitors)
             {
                 monitor.Reset();
+            }
+        }
+
+        public int GetTemperature()
+        {
+            return _monitors[0].GetTemperature();
+        }
+
+        public void SetTemperature(int temperature)
+        {
+            foreach (var monitor in _monitors)
+            {
+                monitor.SetTemperature(temperature);
             }
         }
     }

@@ -5,7 +5,7 @@ using NLog;
 
 namespace Mlux.Lib.Display
 {
-    public class Monitor : IMonitor
+    public class Monitor : ITemperatureMonitor
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -52,7 +52,7 @@ namespace Mlux.Lib.Display
                     throw new ApplicationException($"Cannot GetPhysicalMonitorsFromHMONITOR for hmonitor {_hMonitor}");
                 }
 
-                InitialBrightness = Brightness;
+                InitialBrightness = GetBrightness();
 
                 foreach (var monitor in _physicalMonitors)
                 {
@@ -77,41 +77,37 @@ namespace Mlux.Lib.Display
             }
         }
 
-        public int Brightness
+        public int GetBrightness()
         {
-            get
+            if (!SupportBrightness) throw new ApplicationException("Setting brightness is not supported on this monitor");
+
+            uint brightness = 0;
+            uint minBrightness = 0;
+            uint maxBrightness = 0;
+            if (!MonitorMethods.GetMonitorBrightness(_physicalMonitors[0].hPhysicalMonitor, ref minBrightness, ref brightness, ref maxBrightness))
             {
-                if (!SupportBrightness) throw new ApplicationException("Setting brightness is not supported on this monitor");
-
-                uint brightness = 0;
-                uint minBrightness = 0;
-                uint maxBrightness = 0;
-                if (!MonitorMethods.GetMonitorBrightness(_physicalMonitors[0].hPhysicalMonitor, ref minBrightness, ref brightness, ref maxBrightness))
-                {
-                    throw new ApplicationException("Unable to retrieve brightness through GetMonitorBrightness call.");
-                }
-
-                Log.Info($"Brightness {brightness} Max {maxBrightness} min {minBrightness}");
-
-                MinBrightness = minBrightness;
-                MaxBrightness = maxBrightness;
-                return (int)brightness;
+                throw new ApplicationException("Unable to retrieve brightness through GetMonitorBrightness call.");
             }
-            set
+
+            Log.Info($"Brightness {brightness} Max {maxBrightness} min {minBrightness}");
+
+            MinBrightness = minBrightness;
+            MaxBrightness = maxBrightness;
+            return (int)brightness;
+        }
+
+        public void SetBrightness(int brightness)
+        {
+            if (!SupportBrightness) throw new ApplicationException("Setting brightness is not supported on this monitor");
+
+            uint ubrightness = (uint)brightness;
+            ubrightness = Math.Min(ubrightness, Math.Max(0, ubrightness));
+            ubrightness = (MaxBrightness - MinBrightness) * ubrightness / 100u + MinBrightness;
+            foreach (var physicalMonitor in _physicalMonitors)
             {
-                if (!SupportBrightness) throw new ApplicationException("Setting brightness is not supported on this monitor");
+                Log.Info($"Set brightness {physicalMonitor.hPhysicalMonitor} to {brightness}");
 
-                if (Brightness == value) return;
-
-                var brightness = (uint)value;
-                brightness = Math.Min(brightness, Math.Max(0, brightness));
-                brightness = (MaxBrightness - MinBrightness) * brightness / 100u + MinBrightness;
-                foreach (var physicalMonitor in _physicalMonitors)
-                {
-                    Log.Info($"Set brightness {physicalMonitor.hPhysicalMonitor} to {brightness}");
-
-                    MonitorMethods.SetMonitorBrightness(physicalMonitor.hPhysicalMonitor, brightness);
-                }
+                MonitorMethods.SetMonitorBrightness(physicalMonitor.hPhysicalMonitor, ubrightness);
             }
         }
 
@@ -185,9 +181,19 @@ namespace Mlux.Lib.Display
         {
             Log.Info($"{this} Start reset");
 
-            if (SupportBrightness) Brightness = InitialBrightness;
+            if (SupportBrightness) SetBrightness(InitialBrightness);
 
             SetColorProfile(ColorAdjustment.Default);
+        }
+
+        public int GetTemperature()
+        {
+            throw new NotImplementedException("Hardware monitor doesn't know about temperature");
+        }
+
+        public void SetTemperature(int temperature)
+        {
+            throw new NotImplementedException("Hardware monitor doesn't know about temperature");
         }
     }
 }

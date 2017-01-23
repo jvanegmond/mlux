@@ -22,7 +22,7 @@ namespace Mlux.Lib
         public event TimeKeeperEvent CurrentChanged;
 
         private readonly Monitors _allMonitors;
-        private readonly CancellationTokenSource _stop = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
         private readonly AutoResetEvent _runNow = new AutoResetEvent(false);
 
         public int CurrentBrightness { get; private set; }
@@ -47,7 +47,13 @@ namespace Mlux.Lib
         {
             _profile = profile;
 
-            _allMonitors = new Monitors();
+            var monitors = new List<ITemperatureMonitor>();
+            foreach (var monitor in Monitors.Create())
+            {
+                monitors.Add(new LerpedValuesMonitor(new CachedValuesMonitor(monitor)));
+            }
+
+            _allMonitors = new Monitors(monitors);
         }
 
         public void Start()
@@ -60,7 +66,7 @@ namespace Mlux.Lib
 
         private void TimeKeeperMainThread()
         {
-            var stop = _stop.Token;
+            var cancel = _cancelSource.Token;
 
             while (true)
             {
@@ -75,16 +81,13 @@ namespace Mlux.Lib
                 CurrentBrightness = brightness;
                 CurrentTemperature = temperature;
 
-                _allMonitors.Brightness = brightness;
-                _allMonitors.SetColorProfile(ColorTemperature.GetColorProfile(temperature));
-
-                // Calculate remaining to next node
-
-
+                _allMonitors.SetBrightness(brightness);
+                _allMonitors.SetTemperature(temperature);
+                
                 CurrentChanged?.Invoke(this, EventArgs.Empty);
                 NodeElapsed?.Invoke(this, EventArgs.Empty);
 
-                var result = WaitHandle.WaitAny(new[] { stop.WaitHandle, _runNow }, TimeSpan.FromSeconds(10));
+                var result = WaitHandle.WaitAny(new[] { cancel.WaitHandle, _runNow }, TimeSpan.FromSeconds(10));
 
                 if (result == 0) break; // Stop
             }
@@ -123,8 +126,15 @@ namespace Mlux.Lib
 
         public void Dispose()
         {
+            _cancelSource.Cancel();
+
+            foreach (var monitor in _allMonitors.GetMonitors().OfType<LerpedValuesMonitor>())
+            {
+                monitor.Dispose();
+            }
+
+            Thread.Sleep(100);
             _allMonitors.Reset();
-            _stop.Cancel();
         }
     }
 }

@@ -51,10 +51,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Display\CachedValuesMonitor.cs" />
     <Compile Include="Display\ColorAdjustment.cs" />
     <Compile Include="Display\ColorTemperature.cs" />
     <Compile Include="Display\GammaRamp.cs" />
     <Compile Include="Display\IMonitor.cs" />
+    <Compile Include="Display\ITemperatureMonitor.cs" />
+    <Compile Include="Display\LerpedValuesMonitor.cs" />
     <Compile Include="Display\MonitorMethods.cs" />
     <Compile Include="Display\Monitors.cs" />
     <Compile Include="TimeKeeper.cs" />
