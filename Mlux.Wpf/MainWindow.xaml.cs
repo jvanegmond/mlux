@@ -43,6 +43,7 @@ namespace Mlux.Wpf
         {
             InitializeComponent();
 
+            Closing += MainWindow_Closing;
             Closed += MainWindow_Closed;
 
             _profile = LoadProfile();
@@ -63,6 +64,12 @@ namespace Mlux.Wpf
 
             SetCurrentValues();
             _nextTimeNodeView.CopyFrom(_timeKeeper.Next());
+        }
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            WindowState = WindowState.Minimized;
         }
 
         private void SetCurrentValues()
@@ -97,15 +104,15 @@ namespace Mlux.Wpf
         private void _trayIcon_MainClick(TrayIcon icon, EventArgs e)
         {
             // Toggle visibility
-            if (WindowState != WindowState.Minimized)
-            {
-                WindowState = WindowState.Minimized;
-                if (_settings != null) _settings.WindowState = WindowState.Minimized;
-            }
-            else
+            if (WindowState == WindowState.Minimized)
             {
                 WindowState = WindowState.Normal;
                 if (_settings != null) _settings.WindowState = WindowState.Normal;
+            }
+            else
+            {
+                WindowState = WindowState.Minimized;
+                if (_settings != null) _settings.WindowState = WindowState.Minimized;
             }
         }
 

@@ -10,7 +10,7 @@ namespace Mlux.Lib.Display
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private const int DefaultGamma = 129;
-        private readonly GammaRamp _baseGammaRamp;
+        private readonly GammaRamp _linearGammaRamp;
 
         [DllImport("gdi32.dll")]
         public static extern int GetDeviceGammaRamp(IntPtr hDc, ref GammaRamp lpGammaRamp);
@@ -69,8 +69,8 @@ namespace Mlux.Lib.Display
             // Get the current gamma Ramp
             try
             {
-                var ramp = GetCurrentGammaRamp();
-                _baseGammaRamp = ramp;
+                _linearGammaRamp = GetDefaultGammaRamp();
+                SetDeviceGammaRamp(_hdcMonitor, ref _linearGammaRamp);
             }
             catch (Exception err)
             {
@@ -112,11 +112,20 @@ namespace Mlux.Lib.Display
             }
         }
 
-        public GammaRamp GetCurrentGammaRamp()
+        public static GammaRamp GetDefaultGammaRamp()
         {
-            var result = new GammaRamp();
-            int success = GetDeviceGammaRamp(_hdcMonitor, ref result);
-            Log.Debug($"GetDeviceGammaRamp handle:{_hdcMonitor} with result {success}");
+            var result = new GammaRamp
+            {
+                Red = new ushort[256],
+                Blue = new ushort[256],
+                Green = new ushort[256]
+            };
+
+            for (var n = 0; n < 256; n++)
+            {
+                var value = (ushort)((n / 255d) * ushort.MaxValue);
+                result.Red[n] = result.Blue[n] = result.Green[n] = value;
+            }
 
             return result;
         }
@@ -128,11 +137,6 @@ namespace Mlux.Lib.Display
 
         public void SetColorProfile(ColorAdjustment adjustment, int gamma)
         {
-            if (_baseGammaRamp.Blue == null || _baseGammaRamp.Red == null || _baseGammaRamp.Green == null)
-            {
-                throw new ApplicationException("The monitors current gamma ramp is unavailable.");
-            }
-
             Log.Info($"SetColorProfile {adjustment}, gamma {gamma}");
 
             if (gamma <= 256 && gamma >= 1)
@@ -143,29 +147,29 @@ namespace Mlux.Lib.Display
                 {
 
                     ushort r, g, b;
-                    if (_baseGammaRamp.Red == null)
+                    if (_linearGammaRamp.Red == null)
                     {
                         r = (ushort)(i * (gamma + 128));
                     }
                     else
                     {
-                        r = _baseGammaRamp.Red[i];
+                        r = _linearGammaRamp.Red[i];
                     }
-                    if (_baseGammaRamp.Blue == null)
+                    if (_linearGammaRamp.Blue == null)
                     {
                         b = (ushort)(i * (gamma + 128));
                     }
                     else
                     {
-                        b = _baseGammaRamp.Blue[i];
+                        b = _linearGammaRamp.Blue[i];
                     }
-                    if (_baseGammaRamp.Green == null)
+                    if (_linearGammaRamp.Green == null)
                     {
                         g = (ushort)(i * (gamma + 128));
                     }
                     else
                     {
-                        g = _baseGammaRamp.Green[i];
+                        g = _linearGammaRamp.Green[i];
                     }
 
                     ramp.Red[i] = (ushort)(r * adjustment.Red);

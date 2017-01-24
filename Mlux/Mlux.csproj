@@ -77,10 +77,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Mlux.Lib\Mlux.Lib.csproj">
-      <Project>{81E838A0-6802-46B8-B13B-07E49C5EB0A7}</Project>
-      <Name>Mlux.Lib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Mlux.Wpf\Mlux.Wpf.csproj">
       <Project>{8d27a130-d5c4-4892-9d7e-783ce2400b2e}</Project>
       <Name>Mlux.Wpf</Name>

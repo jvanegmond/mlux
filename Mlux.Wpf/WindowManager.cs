@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Mlux.Wpf
 {
@@ -10,9 +11,9 @@ namespace Mlux.Wpf
     {
         public void Start(bool startHidden)
         {
-            if (System.Windows.Application.Current == null)
+            if (Application.Current == null)
             {
-                new System.Windows.Application();
+                new Application();
             }
 
             var window = new MainWindow();
