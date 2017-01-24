@@ -18,6 +18,16 @@ namespace Mlux.Lib.Display
         public Monitors(IEnumerable<ITemperatureMonitor> monitors)
         {
             _monitors = monitors.ToList();
+
+            foreach (var monitor in _monitors)
+            {
+                monitor.CurrentChanged += Monitor_CurrentChanged;
+            }
+        }
+
+        private void Monitor_CurrentChanged(object sender, EventArgs e)
+        {
+            CurrentChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public static List<Monitor> Create()
@@ -41,6 +51,7 @@ namespace Mlux.Lib.Display
             return _monitors.AsReadOnly();
         }
 
+        public event MonitorEvent CurrentChanged;
         public bool SupportBrightness => _monitors.Any(_ => _.SupportBrightness);
 
         public int GetBrightness()

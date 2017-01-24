@@ -2,6 +2,7 @@
 {
     public interface IMonitor
     {
+        event MonitorEvent CurrentChanged;
         bool SupportBrightness { get; }
         int GetBrightness();
         void SetBrightness(int brightness);

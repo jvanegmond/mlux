@@ -12,6 +12,7 @@ namespace Mlux.Lib.Display
         private int _lastTemperature;
         private int _lastBrightness;
 
+        public event MonitorEvent CurrentChanged;
         public bool SupportBrightness => _monitor.SupportBrightness;
 
         public CachedValuesMonitor(ITemperatureMonitor monitor)

@@ -12,12 +12,12 @@ namespace Mlux.Lib.Display
         private readonly ITemperatureMonitor _monitor;
         private Thread _thread;
         private readonly CancellationTokenSource _cancelSource;
-        private readonly AutoResetEvent _runNow = new AutoResetEvent(false);
         private int _destinationBrightness = -1;
         private int _destinationTemperature = -1;
-        private const int MaxBrightnessDeltaPerSecond = 5;
+        private const int MaxBrightnessDeltaPerSecond = 2;
         private const int MaxTemperatureDeltaPerSecond = 50;
 
+        public event MonitorEvent CurrentChanged;
         public bool SupportBrightness => _monitor.SupportBrightness;
 
         public LerpedValuesMonitor(ITemperatureMonitor monitor)
@@ -38,21 +38,36 @@ namespace Mlux.Lib.Display
 
             while (true)
             {
+                var changed = false;
+
                 if (_destinationBrightness != -1)
                 {
                     var currentBrightness = _monitor.GetBrightness();
                     var newBrightness = Lerp(currentBrightness, _destinationBrightness, MaxBrightnessDeltaPerSecond);
-                    _monitor.SetBrightness(newBrightness);
+                    if (currentBrightness != newBrightness)
+                    {
+                        _monitor.SetBrightness(newBrightness);
+                        changed = true;
+                    }
                 }
 
-                if (_destinationBrightness != -1)
+                if (_destinationTemperature != -1)
                 {
                     var currentTemperature = _monitor.GetTemperature();
                     var newTemperature = Lerp(currentTemperature, _destinationTemperature, MaxTemperatureDeltaPerSecond);
-                    _monitor.SetTemperature(newTemperature);
+                    if (currentTemperature != newTemperature)
+                    {
+                        _monitor.SetTemperature(newTemperature);
+                        changed = true;
+                    }
                 }
 
-                var result = WaitHandle.WaitAny(new[] { cancel.WaitHandle, _runNow }, TimeSpan.FromSeconds(0.1));
+                if (changed)
+                {
+                    CurrentChanged?.Invoke(this, EventArgs.Empty);
+                }
+
+                var result = WaitHandle.WaitAny(new[] { cancel.WaitHandle }, TimeSpan.FromSeconds(0.1));
 
                 if (result == 0) break; // Stop
             }
@@ -74,13 +89,11 @@ namespace Mlux.Lib.Display
         public void SetBrightness(int brightness)
         {
             _destinationBrightness = brightness;
-            _runNow.Set();
         }
 
         public void SetColorProfile(ColorAdjustment adjustment)
         {
             _monitor.SetColorProfile(adjustment);
-            _runNow.Set();
         }
 
         public void SetColorProfile(ColorAdjustment adjustment, int gamma)

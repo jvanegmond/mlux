@@ -23,6 +23,7 @@ namespace Mlux.Lib.Display
         private readonly uint _physicalMonitorsCount = 1;
         private MonitorStructures.PhysicalMonitor[] _physicalMonitors;
 
+        public event MonitorEvent CurrentChanged;
         public bool SupportBrightness { get; }
         public uint MinBrightness { get; private set; }
         public uint MaxBrightness { get; private set; }
@@ -79,7 +80,7 @@ namespace Mlux.Lib.Display
 
         public int GetBrightness()
         {
-            if (!SupportBrightness) throw new ApplicationException("Setting brightness is not supported on this monitor");
+            if (!SupportBrightness) return 100;
 
             uint brightness = 0;
             uint minBrightness = 0;
@@ -98,7 +99,7 @@ namespace Mlux.Lib.Display
 
         public void SetBrightness(int brightness)
         {
-            if (!SupportBrightness) throw new ApplicationException("Setting brightness is not supported on this monitor");
+            if (!SupportBrightness) return;
 
             uint ubrightness = (uint)brightness;
             ubrightness = Math.Min(ubrightness, Math.Max(0, ubrightness));

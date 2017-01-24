@@ -72,7 +72,7 @@ namespace Mlux.Wpf
             _currentTimeNodeView.Temperature = _timeKeeper.CurrentTemperature;
 
             // Show time remaining on current node in TimeOfDay spot
-            _currentTimeNodeView.TimeOfDay = _timeKeeper.CurrentRemaining;
+            _currentTimeNodeView.TimeOfDay = _timeKeeper.GetRemainingUntilNextNode(DateTime.Now);
         }
 
         private void TimeKeeperCurrentChanged(object sender, EventArgs e)

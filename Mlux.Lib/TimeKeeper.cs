@@ -10,7 +10,7 @@ using NLog;
 
 namespace Mlux.Lib
 {
-    public delegate void TimeKeeperEvent(object sender, EventArgs e);
+    public delegate void MonitorEvent(object sender, EventArgs e);
 
     public class TimeKeeper : IDisposable
     {
@@ -18,8 +18,8 @@ namespace Mlux.Lib
 
         private readonly TimeProfile _profile;
         private Thread _timeKeeperThread;
-        public event TimeKeeperEvent NodeElapsed;
-        public event TimeKeeperEvent CurrentChanged;
+        public event MonitorEvent NodeElapsed;
+        public event MonitorEvent CurrentChanged;
 
         private readonly Monitors _allMonitors;
         private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
@@ -28,19 +28,16 @@ namespace Mlux.Lib
         public int CurrentBrightness { get; private set; }
         public int CurrentTemperature { get; private set; }
 
-        public TimeSpan CurrentRemaining
+        public TimeSpan GetRemainingUntilNextNode(DateTime untill)
         {
-            get
+            var now = TimeUtil.GetRelativeTime(untill);
+            var next = Next().TimeOfDay;
+            var diff = next - now;
+            if (diff < TimeSpan.Zero)
             {
-                var now = TimeUtil.GetRelativeTime(TimeProvider.Now);
-                var next = Next().TimeOfDay;
-                var diff = next - now;
-                if (diff < TimeSpan.Zero)
-                {
-                    diff = diff.Add(TimeSpan.FromDays(1));
-                }
-                return diff;
+                diff = diff.Add(TimeSpan.FromDays(1));
             }
+            return diff;
         }
 
         public TimeKeeper(TimeProfile profile)
@@ -50,10 +47,19 @@ namespace Mlux.Lib
             var monitors = new List<ITemperatureMonitor>();
             foreach (var monitor in Monitors.Create())
             {
-                monitors.Add(new LerpedValuesMonitor(new CachedValuesMonitor(monitor)));
+                var wrappedMonitor = new LerpedValuesMonitor(new CachedValuesMonitor(monitor));
+                monitors.Add(wrappedMonitor);
+                wrappedMonitor.CurrentChanged += WrappedMonitor_CurrentChanged;
             }
 
             _allMonitors = new Monitors(monitors);
+        }
+
+        private void WrappedMonitor_CurrentChanged(object sender, EventArgs e)
+        {
+            CurrentBrightness = _allMonitors.GetBrightness();
+            CurrentTemperature = _allMonitors.GetTemperature();
+            CurrentChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void Start()
@@ -78,12 +84,9 @@ namespace Mlux.Lib
                 var temperature = (int)LinearNodeInterpolation.Interpolate(relTime, previous, next, NodeProperty.ColorTemperature);
                 temperature -= temperature % 10;
 
-                CurrentBrightness = brightness;
-                CurrentTemperature = temperature;
-
                 _allMonitors.SetBrightness(brightness);
                 _allMonitors.SetTemperature(temperature);
-                
+
                 CurrentChanged?.Invoke(this, EventArgs.Empty);
                 NodeElapsed?.Invoke(this, EventArgs.Empty);
 
@@ -118,7 +121,7 @@ namespace Mlux.Lib
             _runNow.Set();
 
             // Now travel to the future
-            TimeProvider.TimeTravel(TimeProvider.Now.Add(CurrentRemaining)); // Bug
+            TimeProvider.TimeTravel(TimeProvider.Now.Add(GetRemainingUntilNextNode(TimeProvider.Now)));
 
             // Update brightness/temperature (and remaining again)
             _runNow.Set();
