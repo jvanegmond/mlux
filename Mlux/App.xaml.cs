@@ -45,7 +45,14 @@ namespace Mlux
             Log.Info(() => $"Start hidden parameter: {startHidden}");
 
             _mainWindow = new MainWindow();
-            _mainWindow.Show();
+            if (startHidden)
+            {
+                _mainWindow.Hide();
+            }
+            else
+            {
+                _mainWindow.Show();
+            }
         }
     }
 }
