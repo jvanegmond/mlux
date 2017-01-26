@@ -28,6 +28,24 @@ namespace Mlux.Lib.Time
             Nodes = new List<TimeNode>();
         }
 
+        public TimeNode Previous(DateTime now)
+        {
+            var relTime = TimeUtil.GetRelativeTime(now);
+
+            // Find the last node before the given time. If no nodes are found which are after the given time, return the last of the previous day.
+            var last = Nodes.LastOrDefault(node => node.TimeOfDay <= relTime);
+            return last ?? Nodes.Last();
+        }
+
+        public TimeNode Next(DateTime now)
+        {
+            var relTime = TimeUtil.GetRelativeTime(now);
+
+            // Find the first node after given time. If no nodes are found which are after the given time, return the first of the next day.
+            var first = Nodes.FirstOrDefault(node => node.TimeOfDay > relTime);
+            return first ?? Nodes.First();
+        }
+
         public override string ToString()
         {
             return $"{GetType()} with {Nodes.Count} nodes";

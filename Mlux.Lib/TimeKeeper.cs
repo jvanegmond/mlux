@@ -31,7 +31,7 @@ namespace Mlux.Lib
         public TimeSpan GetRemainingUntilNextNode(DateTime untill)
         {
             var now = TimeUtil.GetRelativeTime(untill);
-            var next = Next().TimeOfDay;
+            var next = _profile.Next(TimeProvider.Now).TimeOfDay;
             var diff = next - now;
             if (diff < TimeSpan.Zero)
             {
@@ -77,8 +77,8 @@ namespace Mlux.Lib
             while (true)
             {
                 var relTime = TimeUtil.GetRelativeTime(TimeProvider.Now);
-                var previous = Previous();
-                var next = Next();
+                var previous = _profile.Previous(TimeProvider.Now);
+                var next = _profile.Next(TimeProvider.Now);
 
                 var brightness = (int)LinearNodeInterpolation.Interpolate(relTime, previous, next, NodeProperty.Brightness);
                 var temperature = (int)LinearNodeInterpolation.Interpolate(relTime, previous, next, NodeProperty.ColorTemperature);
@@ -95,24 +95,6 @@ namespace Mlux.Lib
                 if (result == 0) break; // Stop
             }
 
-        }
-
-        public TimeNode Previous()
-        {
-            var relTime = TimeUtil.GetRelativeTime(TimeProvider.Now);
-
-            // Find the last node before the given time. If no nodes are found which are after the given time, return the last of the previous day.
-            var last = _profile.Nodes.LastOrDefault(node => node.TimeOfDay <= relTime);
-            return last ?? _profile.Nodes.Last();
-        }
-
-        public TimeNode Next()
-        {
-            var relTime = TimeUtil.GetRelativeTime(TimeProvider.Now);
-
-            // Find the first node after given time. If no nodes are found which are after the given time, return the first of the next day.
-            var first = _profile.Nodes.FirstOrDefault(node => node.TimeOfDay > relTime);
-            return first ?? _profile.Nodes.First();
         }
 
         public void Skip()

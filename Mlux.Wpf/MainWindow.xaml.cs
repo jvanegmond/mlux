@@ -43,6 +43,7 @@ namespace Mlux.Wpf
         {
             InitializeComponent();
 
+            Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             Closed += MainWindow_Closed;
 
@@ -63,7 +64,12 @@ namespace Mlux.Wpf
             NextNode.DataContext = _nextTimeNodeView;
 
             SetCurrentValues();
-            _nextTimeNodeView.CopyFrom(_timeKeeper.Next());
+            _nextTimeNodeView.CopyFrom(_profile.Next(TimeProvider.Now));
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            Open_settings_OnClick(this, new RoutedEventArgs());
         }
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -89,7 +95,7 @@ namespace Mlux.Wpf
 
         private void TimeKeeperNodeElapsed(object sender, EventArgs e)
         {
-            _nextTimeNodeView.CopyFrom(_timeKeeper.Next());
+            _nextTimeNodeView.CopyFrom(_profile.Next(TimeProvider.Now));
         }
 
         private void _trayIcon_ExitClick(TrayIcon icon, EventArgs e)
