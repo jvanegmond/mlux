@@ -7,11 +7,13 @@
              mc:Ignorable="d" 
              d:DesignHeight="400" d:DesignWidth="642" Background="White">
     <Grid>
-        <Canvas x:Name="GraphCanvas" Margin="20">
-            <Canvas.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+        <Grid x:Name="Background" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.Background>
+                <LinearGradientBrush x:Name="BackgroundBrush" StartPoint="0,0" EndPoint="1,0">
                 </LinearGradientBrush>
-            </Canvas.Background>
+            </Grid.Background>
+        </Grid>
+        <Canvas x:Name="GraphCanvas">
         </Canvas>
     </Grid>
 </UserControl>

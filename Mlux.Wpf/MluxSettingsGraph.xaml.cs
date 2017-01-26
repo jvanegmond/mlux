@@ -27,8 +27,8 @@ namespace Mlux.Wpf
         private Timer _timer;
         private ManualResetEvent _updateProfileCompletEvent = new ManualResetEvent(false);
 
-        public int VerticalAxisWidth { get; } = 50;
-        public int HorizontalAxisHeight { get; } = 30;
+        public int VerticalAxisWidthMargin { get; } = 50;
+        public int HorizontalAxisHeightMargin { get; } = 30;
 
         public MluxSettingsGraph()
         {
@@ -41,13 +41,16 @@ namespace Mlux.Wpf
         {
             try
             {
-                Dispatcher.Invoke(UpdateProfile);
+                if (Visibility == Visibility.Visible)
+                {
+                    Dispatcher.Invoke(UpdateProfile);
+                    _updateProfileCompletEvent.WaitOne();
+                }
             }
             catch (Exception err)
             {
                 
             }
-            _updateProfileCompletEvent.WaitOne();
             _timer.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
         }
 
@@ -79,17 +82,17 @@ namespace Mlux.Wpf
 
                 GraphCanvas.Children.Add(new Label()
                 {
-                    Margin = new Thickness(VerticalAxisWidth + (percentageWidth * width), height - HorizontalAxisHeight, 0, 0),
-                    Height = HorizontalAxisHeight,
+                    Margin = new Thickness(VerticalAxisWidthMargin + (percentageWidth * width), height - HorizontalAxisHeightMargin, 0, 0),
+                    Height = HorizontalAxisHeightMargin,
                     Content = $"{n}:00"
                 });
             }
             GraphCanvas.Children.Add(new Rectangle()
             {
                 Fill = new SolidColorBrush(Colors.Black),
-                Margin = new Thickness(VerticalAxisWidth, height - HorizontalAxisHeight, 0, 0),
+                Margin = new Thickness(VerticalAxisWidthMargin, height - HorizontalAxisHeightMargin, 0, 0),
                 Height = 1,
-                Width = width - VerticalAxisWidth
+                Width = width - VerticalAxisWidthMargin
             });
 
             // Draw brightness on vertical axis/scale
@@ -99,15 +102,15 @@ namespace Mlux.Wpf
 
                 GraphCanvas.Children.Add(new Label()
                 {
-                    Margin = new Thickness(0, percentageHeight * (height - HorizontalAxisHeight /* - label height ?? */), 0, 0),
+                    Margin = new Thickness(0, percentageHeight * (height - HorizontalAxisHeightMargin /* - label height ?? */), 0, 0),
                     Content = $"{n}"
                 });
             }
             GraphCanvas.Children.Add(new Rectangle()
             {
                 Fill = new SolidColorBrush(Colors.Black),
-                Margin = new Thickness(VerticalAxisWidth, 0, 0, 0),
-                Height = height - HorizontalAxisHeight,
+                Margin = new Thickness(VerticalAxisWidthMargin, 0, 0, 0),
+                Height = height - HorizontalAxisHeightMargin,
                 Width = 1
             });
 
@@ -118,8 +121,8 @@ namespace Mlux.Wpf
             var now = TimeProvider.Now;
             var w = now.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
             var h = 1d - GetBrightnessAsPercentageOfMax(Convert.ToInt32(_profile.GetCurrentValue(_profile.Previous(now), _profile.Next(now), TimeUtil.GetRelativeTime(now), NodeProperty.Brightness)));
-            double x = VerticalAxisWidth + (w * (width - VerticalAxisWidth));
-            double y = h * (height - HorizontalAxisHeight);
+            double x = VerticalAxisWidthMargin + (w * (width - VerticalAxisWidthMargin));
+            double y = h * (height - HorizontalAxisHeightMargin);
 
             GraphCanvas.Children.Add(new Ellipse()
             {
@@ -128,6 +131,10 @@ namespace Mlux.Wpf
                 Height = 10,
                 Width = 10
             });
+
+            // Make the gradient
+            BackgroundBrush.GradientStops.Clear();
+            Background.Margin = new Thickness(VerticalAxisWidthMargin, 0, 0, HorizontalAxisHeightMargin);
 
             // Draw the nodes
             foreach (var node in _profile.Nodes)
@@ -139,30 +146,40 @@ namespace Mlux.Wpf
 
                 var percentageHeight = 1d - GetBrightnessAsPercentageOfMax(brightness);
 
-                x = VerticalAxisWidth + (percentageWidth * (width - VerticalAxisWidth));
-                y = percentageHeight * (height - HorizontalAxisHeight);
+                x = VerticalAxisWidthMargin + (percentageWidth * (width - VerticalAxisWidthMargin));
+                y = percentageHeight * (height - HorizontalAxisHeightMargin);
+
+                var temperatureColor = GetColorFromTemperature(temperature);
 
                 // Draw the element at the node position
                 GraphCanvas.Children.Add(new Label()
                 {
-                    Background = new SolidColorBrush(GetColorFromTemperature(temperature)),
+                    Background = new SolidColorBrush(temperatureColor),
                     Margin = new Thickness(x, y, 0, 0),
                     Content = $"{brightness}%"
                 });
 
+                // Draw gradient stop
+                BackgroundBrush.GradientStops.Add(new GradientStop()
+                {
+                    Color = temperatureColor,
+                    Offset = percentageWidth
+                });
+
+                // Draw horizontal and vertical lines to indicate on axis/scales where they are exactly (helpers)
                 GraphCanvas.Children.Add(new Rectangle()
                 {
                     Fill = new SolidColorBrush(Colors.LightGray),
                     Margin = new Thickness(x, 0, 0, 0),
                     Width = 1,
-                    Height = height - HorizontalAxisHeight
+                    Height = height - HorizontalAxisHeightMargin
                 });
 
                 GraphCanvas.Children.Add(new Rectangle()
                 {
                     Fill = new SolidColorBrush(Colors.LightGray),
-                    Margin = new Thickness(VerticalAxisWidth, y, 0, 0),
-                    Width = width - VerticalAxisWidth,
+                    Margin = new Thickness(VerticalAxisWidthMargin, y, 0, 0),
+                    Width = width - VerticalAxisWidthMargin,
                     Height = 1
                 });
             }
@@ -185,11 +202,6 @@ namespace Mlux.Wpf
                 G = (byte)(byte.MaxValue * temp.Green),
                 B = (byte)(byte.MaxValue * temp.Blue),
             };
-        }
-
-        private double GetTemperatureAsPercentageOfMax(int temperature)
-        {
-            return (temperature - TimeProfile.MinTemperature) / (double)(TimeProfile.MaxTemperature - TimeProfile.MinTemperature);
         }
     }
 }
