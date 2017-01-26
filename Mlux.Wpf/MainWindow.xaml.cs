@@ -69,7 +69,7 @@ namespace Mlux.Wpf
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = true;
-            WindowState = WindowState.Minimized;
+            Hide();
         }
 
         private void SetCurrentValues()
@@ -104,15 +104,13 @@ namespace Mlux.Wpf
         private void _trayIcon_MainClick(TrayIcon icon, EventArgs e)
         {
             // Toggle visibility
-            if (WindowState == WindowState.Minimized)
+            if (Visibility == Visibility.Visible)
             {
-                WindowState = WindowState.Normal;
-                if (_settings != null) _settings.WindowState = WindowState.Normal;
+                Hide();
             }
             else
             {
-                WindowState = WindowState.Minimized;
-                if (_settings != null) _settings.WindowState = WindowState.Minimized;
+                Show();
             }
         }
 
