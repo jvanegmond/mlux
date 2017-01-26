@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Mlux.Lib.Display;
 using Mlux.Lib.Time;
 
 namespace Mlux.Wpf
@@ -38,7 +39,14 @@ namespace Mlux.Wpf
 
         private void Timercallback(object state)
         {
-            Dispatcher.Invoke(UpdateProfile);
+            try
+            {
+                Dispatcher.Invoke(UpdateProfile);
+            }
+            catch (Exception err)
+            {
+                
+            }
             _updateProfileCompletEvent.WaitOne();
             _timer.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
         }
@@ -64,7 +72,7 @@ namespace Mlux.Wpf
             var width = Math.Max(100, GraphCanvas.ActualWidth);
             var height = Math.Max(100, GraphCanvas.ActualHeight);
 
-            // Draw hour of day on horizontal axis
+            // Draw hour of day on horizontal axis/scale
             for (var n = 0; n < 23; n++)
             {
                 var percentageWidth = n / 24d;
@@ -84,10 +92,10 @@ namespace Mlux.Wpf
                 Width = width - VerticalAxisWidth
             });
 
-            // Draw color temperature on vertical axis
-            for (var n = 3200; n <= 6500; n += 100)
+            // Draw brightness on vertical axis/scale
+            for (var n = 0; n <= 100; n += 10)
             {
-                var percentageHeight = 1d - GetTemperatureAsPercentageOfMax(n);
+                var percentageHeight = 1d - GetBrightnessAsPercentageOfMax(n);
 
                 GraphCanvas.Children.Add(new Label()
                 {
@@ -109,7 +117,7 @@ namespace Mlux.Wpf
             // Draw the current position
             var now = TimeProvider.Now;
             var w = now.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
-            var h = 1d - GetTemperatureAsPercentageOfMax(Convert.ToInt32(_profile.GetCurrentValue(_profile.Previous(now), _profile.Next(now), TimeUtil.GetRelativeTime(now), NodeProperty.ColorTemperature)));
+            var h = 1d - GetBrightnessAsPercentageOfMax(Convert.ToInt32(_profile.GetCurrentValue(_profile.Previous(now), _profile.Next(now), TimeUtil.GetRelativeTime(now), NodeProperty.Brightness)));
             double x = VerticalAxisWidth + (w * (width - VerticalAxisWidth));
             double y = h * (height - HorizontalAxisHeight);
 
@@ -129,7 +137,7 @@ namespace Mlux.Wpf
                 var brightness = (int)node.Properties.First(_ => _.Name == NodeProperty.Brightness).Value;
                 var temperature = (int)node.Properties.First(_ => _.Name == NodeProperty.ColorTemperature).Value;
 
-                var percentageHeight = 1d - GetTemperatureAsPercentageOfMax(temperature);
+                var percentageHeight = 1d - GetBrightnessAsPercentageOfMax(brightness);
 
                 x = VerticalAxisWidth + (percentageWidth * (width - VerticalAxisWidth));
                 y = percentageHeight * (height - HorizontalAxisHeight);
@@ -162,15 +170,20 @@ namespace Mlux.Wpf
             _updateProfileCompletEvent.Set();
         }
 
+        private double GetBrightnessAsPercentageOfMax(int brightness)
+        {
+            return (brightness - TimeProfile.MinBrightness) / (double)(TimeProfile.MaxBrightness - TimeProfile.MinBrightness);
+        }
+
         private Color GetColorFromTemperature(int temperature)
         {
-            var percentage = GetTemperatureAsPercentageOfMax(temperature);
+            var temp = ColorTemperature.GetColorProfile(temperature);
             return new Color()
             {
                 A = byte.MaxValue,
-                R = (byte)(percentage * byte.MaxValue),
-                G = 0,
-                B = (byte)((1d - percentage) * byte.MaxValue),
+                R = (byte)(byte.MaxValue * temp.Red),
+                G = (byte)(byte.MaxValue * temp.Green),
+                B = (byte)(byte.MaxValue * temp.Blue),
             };
         }
 
