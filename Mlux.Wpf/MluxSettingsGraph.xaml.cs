@@ -154,7 +154,6 @@ namespace Mlux.Wpf
                 // Draw the element at the node position
                 GraphCanvas.Children.Add(new Label()
                 {
-                    Background = new SolidColorBrush(temperatureColor),
                     Margin = new Thickness(x, y, 0, 0),
                     Content = $"{brightness}%"
                 });
