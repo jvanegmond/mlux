@@ -90,7 +90,7 @@ namespace Mlux.Lib
                 CurrentChanged?.Invoke(this, EventArgs.Empty);
                 NodeElapsed?.Invoke(this, EventArgs.Empty);
 
-                var result = WaitHandle.WaitAny(new[] { cancel.WaitHandle, _runNow }, TimeSpan.FromSeconds(10));
+                var result = WaitHandle.WaitAny(new[] { cancel.WaitHandle, _runNow }, TimeSpan.FromSeconds(1));
 
                 if (result == 0) break; // Stop
             }

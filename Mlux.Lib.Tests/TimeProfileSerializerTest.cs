@@ -21,7 +21,7 @@ namespace Mlux.Lib.Tests
             var originalNode = new TimeNode(TimeSpan.FromHours(7));
             originalNode.Properties.Add(new NodeProperty(NodeProperty.Brightness, 20));
             originalNode.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 3300));
-            originalProfile.Nodes.Add(originalNode);
+            originalProfile.AddNode(originalNode);
 
             var str = TimeProfileSerializer.Serialize(originalProfile);
             Assert.IsNotNull(str);

@@ -9,6 +9,7 @@ namespace Mlux.Wpf.Bindings
 {
     public class TimeNodeView : NotifyPropertyChangedBase
     {
+        public TimeNode UnderlyingNode { get; set; }
         private int _brightness;
         private int _temperature;
         private TimeSpan _timeOfDay;
@@ -57,9 +58,21 @@ namespace Mlux.Wpf.Bindings
             TimeOfDay = TimeSpan.FromHours(8.5);
         }
 
-        public TimeNodeView(TimeNode node)
+        public TimeNodeView(TimeNode underlyingNode)
         {
-            CopyFrom(node);
+            UnderlyingNode = underlyingNode;
+            CopyFrom(underlyingNode);
+
+            PropertyChanged += TimeNodeView_PropertyChanged;
+        }
+
+        private void TimeNodeView_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (UnderlyingNode == null) return;
+
+            UnderlyingNode.Properties.First(_ => _.Name == NodeProperty.Brightness).Value = Brightness;
+            UnderlyingNode.Properties.First(_ => _.Name == NodeProperty.ColorTemperature).Value = Temperature;
+            UnderlyingNode.TimeOfDay = TimeOfDay;
         }
 
         public void CopyFrom(TimeNode node)

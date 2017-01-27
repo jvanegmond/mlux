@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Mlux.Lib.Display;
 using Mlux.Lib.Time;
+using Mlux.Wpf.Bindings;
 
 namespace Mlux.Wpf
 {
@@ -23,55 +24,139 @@ namespace Mlux.Wpf
     /// </summary>
     public partial class MluxSettingsGraph : UserControl
     {
-        private TimeProfile _profile;
-        private Timer _timer;
-        private ManualResetEvent _updateProfileCompletEvent = new ManualResetEvent(false);
+        private TimeProfileView _profile;
+        private Grid _draggyThingDown;
 
-        public int VerticalAxisWidthMargin { get; } = 50;
-        public int HorizontalAxisHeightMargin { get; } = 30;
+        public const int VerticalAxisWidthMargin = 50;
+        public const int HorizontalAxisHeightMargin = 30;
 
-        public MluxSettingsGraph()
-        {
-            InitializeComponent();
-            _timer = new Timer(Timercallback, null, TimeSpan.Zero, Timeout.InfiniteTimeSpan);
-            SizeChanged += MluxSettingsGraph_SizeChanged;
-        }
-
-        private void Timercallback(object state)
-        {
-            try
-            {
-                if (Visibility == Visibility.Visible)
-                {
-                    Dispatcher.Invoke(UpdateProfile);
-                    _updateProfileCompletEvent.WaitOne();
-                }
-            }
-            catch (Exception err)
-            {
-                
-            }
-            _timer.Change(TimeSpan.FromSeconds(1), Timeout.InfiniteTimeSpan);
-        }
-
-        private void MluxSettingsGraph_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            _timer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
-        }
-
-        public TimeProfile Profile
+        public TimeProfileView Profile
         {
             get { return _profile; }
             set
             {
                 _profile = value;
-                UpdateProfile();
             }
         }
 
-        private void UpdateProfile()
+        private void DrawNodes()
+        {
+            var width = Math.Max(100, GraphCanvas.ActualWidth);
+            var height = Math.Max(100, GraphCanvas.ActualHeight);
+
+            // Draw the nodes
+            foreach (var node in _profile.Nodes)
+            {
+                var percentageWidth = node.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
+                var percentageHeight = 1d - GetBrightnessAsPercentageOfMax(node.Brightness);
+
+                var x = VerticalAxisWidthMargin + (percentageWidth * (width - VerticalAxisWidthMargin));
+                var y = percentageHeight * (height - HorizontalAxisHeightMargin);
+
+                var temperatureColor = GetColorFromTemperature(node.Temperature);
+
+                var draggyThing = new Grid
+                {
+                    Margin = new Thickness(x, y, 0, 0)
+                };
+                draggyThing.MouseLeftButtonDown += DraggyThingOnMouseLeftButtonDown;
+
+                // Draw the element at the node position
+                draggyThing.Children.Add(new Label()
+                {
+                    Background = new SolidColorBrush(Colors.Blue),
+                    Content = $"{node.Brightness}%",
+                });
+
+                GraphCanvas.Children.Add(draggyThing);
+
+                // Draw gradient stop
+                BackgroundBrush.GradientStops.Add(new GradientStop()
+                {
+                    Color = temperatureColor,
+                    Offset = percentageWidth,
+                });
+            }
+        }
+
+        private void DraggyThingOnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var draggyThing = (Grid)sender;
+            _draggyThingDown = draggyThing;
+        }
+
+        public MluxSettingsGraph()
+        {
+            InitializeComponent();
+
+            SizeChanged += MluxSettingsGraph_SizeChanged;
+        }
+
+        protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
+        {
+            _draggyThingDown = null;
+
+            base.OnMouseLeftButtonUp(e);
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            if (_draggyThingDown == null) return;
+
+            var pos = e.GetPosition(GraphCanvas);
+
+            var nodeIndex = Array.IndexOf(GraphCanvas.Children.OfType<Grid>().ToArray(), _draggyThingDown);
+            var node = _profile.Nodes[nodeIndex];
+
+            var minTime = TimeSpan.Zero;
+            if (nodeIndex > 0)
+            {
+                var prevNode = _profile.Nodes[nodeIndex - 1];
+                minTime = prevNode.TimeOfDay.Add(TimeSpan.FromMinutes(15));
+            }
+
+            var width = Math.Max(100, GraphCanvas.ActualWidth);
+            var height = Math.Max(100, GraphCanvas.ActualHeight);
+
+            var xRel = pos.X / width;
+            var yRel = pos.Y / height;
+
+            xRel = Math.Min(1d, xRel);
+
+            var newTimeSpan = TimeSpan.FromDays(xRel);
+            if (newTimeSpan < minTime)
+            {
+                newTimeSpan = minTime;
+            }
+
+            node.Brightness = (int)((1 - yRel) * 100); // TODO: Fetch max brightness
+            node.TimeOfDay = newTimeSpan;
+
+            var percentageWidth = node.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
+            var percentageHeight = 1d - GetBrightnessAsPercentageOfMax(node.Brightness);
+
+            var x = VerticalAxisWidthMargin + (percentageWidth * (width - VerticalAxisWidthMargin));
+            var y = percentageHeight * (height - HorizontalAxisHeightMargin);
+
+            _draggyThingDown.Margin = new Thickness(x, y, 0, 0);
+
+            base.OnMouseMove(e);
+        }
+
+        private void MluxSettingsGraph_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            Clear();
+            DrawChrome();
+            DrawNodes();
+        }
+
+        private void Clear()
         {
             GraphCanvas.Children.Clear();
+        }
+
+        private void DrawChrome()
+        {
             var width = Math.Max(100, GraphCanvas.ActualWidth);
             var height = Math.Max(100, GraphCanvas.ActualHeight);
 
@@ -114,76 +199,22 @@ namespace Mlux.Wpf
                 Width = 1
             });
 
-            // Design time the profile is not yet set
-            if (_profile == null) return;
-
             // Draw the current position
             var now = TimeProvider.Now;
             var w = now.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
-            var h = 1d - GetBrightnessAsPercentageOfMax(Convert.ToInt32(_profile.GetCurrentValue(_profile.Previous(now), _profile.Next(now), TimeUtil.GetRelativeTime(now), NodeProperty.Brightness)));
             double x = VerticalAxisWidthMargin + (w * (width - VerticalAxisWidthMargin));
-            double y = h * (height - HorizontalAxisHeightMargin);
 
-            GraphCanvas.Children.Add(new Ellipse()
+            GraphCanvas.Children.Add(new Rectangle()
             {
-                Fill = new SolidColorBrush(Colors.Red),
-                Margin = new Thickness(x - 5, y - 5, 0, 0),
-                Height = 10,
-                Width = 10
+                Fill = new SolidColorBrush(Colors.DarkRed),
+                Margin = new Thickness(x, 0, 0, 0),
+                Height = height,
+                Width = 1
             });
 
             // Make the gradient
             BackgroundBrush.GradientStops.Clear();
             Background.Margin = new Thickness(VerticalAxisWidthMargin, 0, 0, HorizontalAxisHeightMargin);
-
-            // Draw the nodes
-            foreach (var node in _profile.Nodes)
-            {
-                var percentageWidth = node.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
-
-                var brightness = (int)node.Properties.First(_ => _.Name == NodeProperty.Brightness).Value;
-                var temperature = (int)node.Properties.First(_ => _.Name == NodeProperty.ColorTemperature).Value;
-
-                var percentageHeight = 1d - GetBrightnessAsPercentageOfMax(brightness);
-
-                x = VerticalAxisWidthMargin + (percentageWidth * (width - VerticalAxisWidthMargin));
-                y = percentageHeight * (height - HorizontalAxisHeightMargin);
-
-                var temperatureColor = GetColorFromTemperature(temperature);
-
-                // Draw the element at the node position
-                GraphCanvas.Children.Add(new Label()
-                {
-                    Margin = new Thickness(x, y, 0, 0),
-                    Content = $"{brightness}%"
-                });
-
-                // Draw gradient stop
-                BackgroundBrush.GradientStops.Add(new GradientStop()
-                {
-                    Color = temperatureColor,
-                    Offset = percentageWidth
-                });
-
-                // Draw horizontal and vertical lines to indicate on axis/scales where they are exactly (helpers)
-                GraphCanvas.Children.Add(new Rectangle()
-                {
-                    Fill = new SolidColorBrush(Colors.LightGray),
-                    Margin = new Thickness(x, 0, 0, 0),
-                    Width = 1,
-                    Height = height - HorizontalAxisHeightMargin
-                });
-
-                GraphCanvas.Children.Add(new Rectangle()
-                {
-                    Fill = new SolidColorBrush(Colors.LightGray),
-                    Margin = new Thickness(VerticalAxisWidthMargin, y, 0, 0),
-                    Width = width - VerticalAxisWidthMargin,
-                    Height = 1
-                });
-            }
-
-            _updateProfileCompletEvent.Set();
         }
 
         private double GetBrightnessAsPercentageOfMax(int brightness)

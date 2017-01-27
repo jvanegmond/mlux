@@ -31,11 +31,10 @@ namespace Mlux.Wpf
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private const string SavedProfilePath = "profile.xml";
 
-        private readonly TimeProfile _profile;
+        private readonly TimeProfileView _profile;
         private readonly TrayIcon _trayIcon;
         private readonly TimeKeeper _timeKeeper;
         private readonly TimeNodeView _currentTimeNodeView;
-        private readonly TimeNodeView _nextTimeNodeView;
 
         private SettingsWindow _settings;
 
@@ -47,24 +46,22 @@ namespace Mlux.Wpf
             Closing += MainWindow_Closing;
             Closed += MainWindow_Closed;
 
-            _profile = LoadProfile();
+            var profile = LoadProfile();
+            _profile = new TimeProfileView(profile);
 
             _trayIcon = new TrayIcon();
             _trayIcon.MainClick += _trayIcon_MainClick;
             _trayIcon.ExitClick += _trayIcon_ExitClick;
 
-            _timeKeeper = new TimeKeeper(_profile);
+            _timeKeeper = new TimeKeeper(profile);
             _timeKeeper.NodeElapsed += TimeKeeperNodeElapsed;
             _timeKeeper.CurrentChanged += TimeKeeperCurrentChanged;
             _timeKeeper.Start();
 
             _currentTimeNodeView = new TimeNodeView();
-            _nextTimeNodeView = new TimeNodeView();
             CurrentNode.DataContext = _currentTimeNodeView;
-            NextNode.DataContext = _nextTimeNodeView;
 
             SetCurrentValues();
-            _nextTimeNodeView.CopyFrom(_profile.Next(TimeProvider.Now));
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -95,7 +92,7 @@ namespace Mlux.Wpf
 
         private void TimeKeeperNodeElapsed(object sender, EventArgs e)
         {
-            _nextTimeNodeView.CopyFrom(_profile.Next(TimeProvider.Now));
+            Dispatcher.Invoke(() => NextNode.DataContext = _profile.Next(TimeProvider.Now));
         }
 
         private void _trayIcon_ExitClick(TrayIcon icon, EventArgs e)
@@ -145,9 +142,21 @@ namespace Mlux.Wpf
             return result;
         }
 
+        public static void SaveProfile(TimeProfile profile)
+        {
+            var profileString = TimeProfileSerializer.Serialize(profile);
+
+            File.WriteAllText(SavedProfilePath, profileString, Encoding.UTF8);
+
+            Log.Info("Profile saved");
+
+        }
+
         private void MainWindow_Closed(object sender, EventArgs e)
         {
             Log.Info("Main window closed");
+
+            SaveProfile(_profile.UnderlyingProfile);
 
             _timeKeeper.Dispose();
             _trayIcon.Dispose();
@@ -155,9 +164,7 @@ namespace Mlux.Wpf
 
         private void Open_settings_OnClick(object sender, RoutedEventArgs e)
         {
-            if (_settings == null || !_settings.IsLoaded) _settings = new SettingsWindow();
-            
-            _settings.Profile = _profile;
+            if (_settings == null || !_settings.IsLoaded) _settings = new SettingsWindow(_profile);
             _settings.Show();
         }
 

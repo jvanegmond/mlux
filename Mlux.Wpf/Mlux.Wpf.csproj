@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bindings\NotifyPropertyChangedBase.cs" />
+    <Compile Include="Bindings\TimeProfileView.cs" />
     <Compile Include="Bindings\TimeNodeView.cs" />
     <Compile Include="MainWindowNode.xaml.cs">
       <DependentUpon>MainWindowNode.xaml</DependentUpon>

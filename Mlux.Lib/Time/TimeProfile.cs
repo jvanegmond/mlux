@@ -1,11 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 
 namespace Mlux.Lib.Time
 {
+    public class TimeProfileNodeAddedEvent : EventArgs
+    {
+        public TimeNode Node { get; set; }
+
+        public TimeProfileNodeAddedEvent(TimeNode node)
+        {
+            Node = node;
+        }
+    }
+
+    public delegate void TimeProfileNodeAddedDelegate(object sender, TimeProfileNodeAddedEvent e);
+
     [Serializable]
     public class TimeProfile
     {
@@ -14,14 +27,14 @@ namespace Mlux.Lib.Time
         public const int MinBrightness = 0;
         public const int MaxBrightness = 100;
 
+        public event TimeProfileNodeAddedDelegate NodeAdded;
+
         public string Name { get; set; }
 
         // node --------------- node ----------- time ------------- node ------------ node
         // current node   =   last node before given time
         // next node      =   first node after given time
-
-		
-        public List<TimeNode> Nodes { get; private set; }
+        public List<TimeNode> Nodes { get; }
 
         public TimeProfile()
         {
@@ -54,6 +67,12 @@ namespace Mlux.Lib.Time
         public object GetCurrentValue(TimeNode previous, TimeNode next, TimeSpan time, string nodePropertyName)
         {
             return LinearNodeInterpolation.Interpolate(time, previous, next, nodePropertyName);
+        }
+
+        public void AddNode(TimeNode node)
+        {
+            Nodes.Add(node);
+            NodeAdded?.Invoke(this, new TimeProfileNodeAddedEvent(node));
         }
     }
 }

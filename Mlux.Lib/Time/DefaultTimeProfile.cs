@@ -21,27 +21,27 @@ namespace Mlux.Lib.Time
             var wakeUpTime = new TimeNode(TimeSpan.FromHours(7));
             wakeUpTime.Properties.Add(new NodeProperty(NodeProperty.Brightness, 20));
             wakeUpTime.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 3300));
-            result.Nodes.Add(wakeUpTime);
+            result.AddNode(wakeUpTime);
 
             var morning = new TimeNode(TimeSpan.FromHours(8));
             morning.Properties.Add(new NodeProperty(NodeProperty.Brightness, 80));
             morning.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 6500));
-            result.Nodes.Add(morning);
+            result.AddNode(morning);
 
             var srsModeOver = new TimeNode(TimeSpan.FromHours(17));
             srsModeOver.Properties.Add(new NodeProperty(NodeProperty.Brightness, 80));
             srsModeOver.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 6500));
-            result.Nodes.Add(srsModeOver);
+            result.AddNode(srsModeOver);
 
             var afterDinner = new TimeNode(TimeSpan.FromHours(19));
             afterDinner.Properties.Add(new NodeProperty(NodeProperty.Brightness, 40));
             afterDinner.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 5000));
-            result.Nodes.Add(afterDinner);
+            result.AddNode(afterDinner);
 
             var bedTime = new TimeNode(TimeSpan.FromHours(22));
             bedTime.Properties.Add(new NodeProperty(NodeProperty.Brightness, 20));
             bedTime.Properties.Add(new NodeProperty(NodeProperty.ColorTemperature, 3300));
-            result.Nodes.Add(bedTime);
+            result.AddNode(bedTime);
 
             return result;
         }
