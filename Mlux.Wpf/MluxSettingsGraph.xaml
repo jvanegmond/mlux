@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Mlux.Wpf"
+             xmlns:bindings="clr-namespace:Mlux.Wpf.Bindings"
              mc:Ignorable="d" 
              d:DesignHeight="400" d:DesignWidth="642" Background="White">
     <Grid>
@@ -15,5 +16,23 @@
         </Grid>
         <Canvas x:Name="GraphCanvas">
         </Canvas>
+        <Grid VerticalAlignment="Top" Margin="50,0" d:DataContext="{d:DesignInstance bindings:TimeNodeView, IsDesignTimeCreatable=True}" x:Name="SelectedNode">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding Brightness, StringFormat=Brightness: {0}%}"></TextBlock>
+            <TextBlock Grid.Column="1" Text="{Binding Temperature, StringFormat=Temperature: {0}K}"></TextBlock>
+            <TextBlock Grid.Column="2">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}Time of day: {0}:{1:00}">
+                        <Binding Path="TimeOfDay.Hours"/>
+                        <Binding Path="TimeOfDay.Minutes"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </Grid>
     </Grid>
 </UserControl>

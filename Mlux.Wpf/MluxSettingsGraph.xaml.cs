@@ -25,7 +25,7 @@ namespace Mlux.Wpf
     public partial class MluxSettingsGraph : UserControl
     {
         private TimeProfileView _profile;
-        private Grid _draggyThingDown;
+        private Grid _draggableElement;
 
         public const int VerticalAxisWidthMargin = 50;
         public const int HorizontalAxisHeightMargin = 30;
@@ -55,20 +55,21 @@ namespace Mlux.Wpf
 
                 var temperatureColor = GetColorFromTemperature(node.Temperature);
 
-                var draggyThing = new Grid
+                var draggableElement = new Grid
                 {
                     Margin = new Thickness(x, y, 0, 0)
                 };
-                draggyThing.MouseLeftButtonDown += DraggyThingOnMouseLeftButtonDown;
+                draggableElement.MouseLeftButtonDown += DraggableOnMouseLeftButtonDown;
+                draggableElement.MouseEnter += DraggableMouseEnter;
 
                 // Draw the element at the node position
-                draggyThing.Children.Add(new Label()
+                draggableElement.Children.Add(new Label()
                 {
                     Background = new SolidColorBrush(Colors.Blue),
                     Content = $"{node.Brightness}%",
                 });
 
-                GraphCanvas.Children.Add(draggyThing);
+                GraphCanvas.Children.Add(draggableElement);
 
                 // Draw gradient stop
                 BackgroundBrush.GradientStops.Add(new GradientStop()
@@ -79,10 +80,20 @@ namespace Mlux.Wpf
             }
         }
 
-        private void DraggyThingOnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void DraggableMouseEnter(object sender, MouseEventArgs e)
         {
-            var draggyThing = (Grid)sender;
-            _draggyThingDown = draggyThing;
+            var draggableElement = (Grid)sender;
+
+            var nodeIndex = Array.IndexOf(GraphCanvas.Children.OfType<Grid>().ToArray(), draggableElement);
+            var node = _profile.Nodes[nodeIndex];
+
+            SelectedNode.DataContext = node;
+        }
+
+        private void DraggableOnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var draggableElement = (Grid)sender;
+            _draggableElement = draggableElement;
         }
 
         public MluxSettingsGraph()
@@ -94,18 +105,18 @@ namespace Mlux.Wpf
 
         protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
         {
-            _draggyThingDown = null;
+            _draggableElement = null;
 
             base.OnMouseLeftButtonUp(e);
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            if (_draggyThingDown == null) return;
+            if (_draggableElement == null) return;
 
             var pos = e.GetPosition(GraphCanvas);
 
-            var nodeIndex = Array.IndexOf(GraphCanvas.Children.OfType<Grid>().ToArray(), _draggyThingDown);
+            var nodeIndex = Array.IndexOf(GraphCanvas.Children.OfType<Grid>().ToArray(), _draggableElement);
             var node = _profile.Nodes[nodeIndex];
 
             var minTime = TimeSpan.Zero;
@@ -123,7 +134,9 @@ namespace Mlux.Wpf
 
             xRel = Math.Min(1d, xRel);
 
-            var newTimeSpan = TimeSpan.FromDays(xRel);
+            var roundedDays = Math.Round(xRel * 24 * 4) / 24 / 4;
+
+            var newTimeSpan = TimeSpan.FromDays(roundedDays);
             if (newTimeSpan < minTime)
             {
                 newTimeSpan = minTime;
@@ -138,7 +151,7 @@ namespace Mlux.Wpf
             var x = VerticalAxisWidthMargin + (percentageWidth * (width - VerticalAxisWidthMargin));
             var y = percentageHeight * (height - HorizontalAxisHeightMargin);
 
-            _draggyThingDown.Margin = new Thickness(x, y, 0, 0);
+            _draggableElement.Margin = new Thickness(x, y, 0, 0);
 
             base.OnMouseMove(e);
         }
