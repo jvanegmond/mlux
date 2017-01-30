@@ -137,7 +137,7 @@ namespace Mlux.Wpf
             var roundedDays = Math.Round(xRel * 24 * 4) / 24 / 4;
 
             var newTimeSpan = TimeSpan.FromDays(roundedDays);
-            if (newTimeSpan < minTime)
+            if (newTimeSpan < minTime) // TODO: Same thing with max time
             {
                 newTimeSpan = minTime;
             }
@@ -152,6 +152,13 @@ namespace Mlux.Wpf
             var y = percentageHeight * (height - HorizontalAxisHeightMargin);
 
             _draggableElement.Margin = new Thickness(x, y, 0, 0);
+
+            // Fix the background gradient
+            var gradientStop = BackgroundBrush.GradientStops[nodeIndex];
+
+            var temperatureColor = GetColorFromTemperature(node.Temperature);
+            gradientStop.Color = temperatureColor;
+            gradientStop.Offset = percentageWidth;
 
             base.OnMouseMove(e);
         }
