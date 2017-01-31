@@ -8,14 +8,15 @@
              mc:Ignorable="d" 
              d:DesignHeight="400" d:DesignWidth="642" Background="White">
     <Grid>
-        <Grid x:Name="Background" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid x:Name="Background" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,20,0,0">
             <Grid.Background>
                 <LinearGradientBrush x:Name="BackgroundBrush" StartPoint="0,0" EndPoint="1,0">
                 </LinearGradientBrush>
             </Grid.Background>
         </Grid>
-        <Canvas x:Name="GraphCanvas">
+        <Canvas x:Name="GraphCanvas" Margin="0,20,0,0">
         </Canvas>
+        <Button x:Name="AddNew" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20" Height="20" Click="AddNew_OnClick">+</Button>
         <Grid VerticalAlignment="Top" Margin="50,0" d:DataContext="{d:DesignInstance bindings:TimeNodeView, IsDesignTimeCreatable=True}" x:Name="SelectedNode">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
@@ -34,5 +35,6 @@
                 </TextBlock.Text>
             </TextBlock>
         </Grid>
+        <Button x:Name="Delete" HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20" Click="Delete_OnClick">x</Button>
     </Grid>
 </UserControl>
