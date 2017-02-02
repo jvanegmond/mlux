@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Mlux.Wpf.MluxSettingsGraph"
+<UserControl x:Class="Mlux.Wpf.SettingsGraph"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -14,7 +14,9 @@
                 </LinearGradientBrush>
             </Grid.Background>
         </Grid>
-        <Canvas x:Name="GraphCanvas" Margin="0,20,0,0">
+        <Canvas x:Name="ChromeCanvas" Margin="0,20,0,0">
+        </Canvas>
+        <Canvas x:Name="GraphCanvas">
         </Canvas>
         <Button x:Name="AddNew" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20" Height="20" Click="AddNew_OnClick">+</Button>
         <Grid VerticalAlignment="Top" Margin="50,0" d:DataContext="{d:DesignInstance bindings:TimeNodeView, IsDesignTimeCreatable=True}" x:Name="SelectedNode">

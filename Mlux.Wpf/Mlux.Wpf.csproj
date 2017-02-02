@@ -65,12 +65,15 @@
     <Compile Include="MainWindowNode.xaml.cs">
       <DependentUpon>MainWindowNode.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MluxSettingsGraph.xaml.cs">
-      <DependentUpon>MluxSettingsGraph.xaml</DependentUpon>
+    <Compile Include="SettingsGraph.xaml.cs">
+      <DependentUpon>SettingsGraph.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SettingsGraphNode.xaml.cs">
+      <DependentUpon>SettingsGraphNode.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -84,11 +87,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MluxSettingsGraph.xaml">
+    <Page Include="SettingsGraph.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SettingsGraphNode.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
