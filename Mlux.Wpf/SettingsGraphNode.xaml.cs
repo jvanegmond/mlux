@@ -97,19 +97,21 @@ namespace Mlux.Wpf
             Height = height;
 
             // Set margin to left to set it correctly on time
-
             var percentageWidth = Node.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
-            var x = percentageWidth * width;
+            var x = (percentageWidth * width) + (ActualWidth / 2);
 
             Margin = new Thickness(x, 0, 0, 0);
 
             // Set margin on brightness
+            var startOffset = BrightnessNode.ActualHeight;
+            height -= startOffset * 2;
+
             var percentage = ((double)Node.Brightness - TimeProfile.MinBrightness) / TimeProfile.MaxBrightness;
-            BrightnessNode.Margin = new Thickness(0, (1d - percentage) * height - BrightnessNode.ActualHeight, 0, 0);
+            BrightnessNode.Margin = new Thickness(0, startOffset + ((1d - percentage) * height), 0, 0);
 
             // Set margin on temperature
             percentage = ((double)Node.Temperature - TimeProfile.MinTemperature) / TimeProfile.MaxTemperature;
-            TemperatureNode.Margin = new Thickness(0, (1d - percentage) * height - TemperatureNode.ActualHeight, 0, 0);
+            TemperatureNode.Margin = new Thickness(0, startOffset + ((1d - percentage) * height), 0, 0);
         }
 
         public static double GetNodeValuePercentage(int value, NodeType type)

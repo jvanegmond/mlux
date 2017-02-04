@@ -92,7 +92,18 @@ namespace Mlux.Wpf
 
         private void TimeKeeperNodeElapsed(object sender, EventArgs e)
         {
-            Dispatcher.Invoke(() => NextNode.DataContext = _profile.Next(TimeProvider.Now));
+            Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        NextNode.DataContext = _profile.Next(TimeProvider.Now);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        // Normal shutdown
+                    }
+                }
+            );
         }
 
         private void _trayIcon_ExitClick(TrayIcon icon, EventArgs e)

@@ -71,7 +71,9 @@ namespace Mlux.Wpf
             // Draw the nodes
             foreach (var node in _profile.Nodes)
             {
-                GraphCanvas.Children.Add(new SettingsGraphNode(node));
+                var uiNode = new SettingsGraphNode(node);
+                GraphCanvas.Children.Add(uiNode);
+                uiNode.MouseEnter += (sender, args) => SelectedNode.DataContext = ((SettingsGraphNode)sender).Node;
             }
         }
 
