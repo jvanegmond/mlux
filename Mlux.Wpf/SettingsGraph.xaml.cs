@@ -56,6 +56,9 @@ namespace Mlux.Wpf
                 DrawNodes();
                 DrawChrome();
             };
+
+            MouseLeave += (sender, args) => StopDrag();
+            MouseLeftButtonUp += (sender, args) => StopDrag();
         }
 
         private void DrawNodes()
@@ -64,7 +67,6 @@ namespace Mlux.Wpf
 
             var margin = ChromeCanvas.Margin;
             GraphCanvas.Margin = new Thickness(margin.Left + AxisWidth + 1, margin.Top, margin.Right, margin.Bottom + AxisHeight);
-            GraphCanvas.Background = new SolidColorBrush(Colors.Aquamarine);
 
             // Draw the nodes
             foreach (var node in _profile.Nodes)
@@ -73,11 +75,28 @@ namespace Mlux.Wpf
             }
         }
 
-        protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
+        protected override void OnMouseMove(MouseEventArgs e)
         {
-            Mouse.OverrideCursor = null;
+            var draggingNodes = GraphCanvas.Children.OfType<SettingsGraphNode>();
+            foreach (var draggingNode in draggingNodes)
+            {
+                if (draggingNode.DraggingType == NodeType.None) continue;
 
-            base.OnMouseLeftButtonUp(e);
+                draggingNode.Drag(e);
+            }
+
+            base.OnMouseMove(e);
+        }
+
+        private void StopDrag()
+        {
+            var draggingNodes = GraphCanvas.Children.OfType<SettingsGraphNode>();
+            foreach (var draggingNode in draggingNodes)
+            {
+                draggingNode.DraggingType = NodeType.None;
+            }
+
+            Mouse.OverrideCursor = null;
         }
 
         private void SetNodeValuePercentage(TimeNodeView node, double percentage, NodeType type)

@@ -22,7 +22,30 @@ namespace Mlux.Wpf
     /// </summary>
     public partial class SettingsGraphNode : UserControl
     {
-        public NodeType DraggingType { get; private set; } = NodeType.None;
+        private NodeType _draggingType = NodeType.None;
+
+        public NodeType DraggingType
+        {
+            get
+            {
+                return _draggingType;
+
+            }
+            set
+            {
+                _draggingType = value;
+                if (_draggingType == NodeType.None)
+                {
+                    // Stop
+                    Divider.Width = 1;
+                }
+                else
+                {
+                    // Start
+                    Divider.Width = 2;
+                }
+            }
+        }
 
         public TimeNodeView Node { get; }
 
@@ -33,14 +56,14 @@ namespace Mlux.Wpf
             InitializeComponent();
             Cursor = Cursors.SizeWE;
 
-            Loaded += (sender, args) => Redraw();
+            Loaded += (sender, args) => SetPositions();
 
             Divider.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.TimeOnly;
             BrightnessNode.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.Brightness;
             TemperatureNode.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.Temperature;
         }
 
-        private void Redraw()
+        private void SetPositions()
         {
             if (Parent == null) return;
 
@@ -87,6 +110,39 @@ namespace Mlux.Wpf
             {
                 return node.Temperature;
             }
+        }
+
+        public void Drag(MouseEventArgs e)
+        {
+            var pos = e.GetPosition((Panel)Parent);
+
+            var width = ((Panel)Parent).ActualWidth;
+            var height = ((Panel)Parent).ActualHeight;
+
+            var percentageX = pos.X / width;
+            var percentageY = 1d - (pos.Y / height);
+
+            Node.TimeOfDay = TimeSpan.FromSeconds(TimeSpan.FromDays(1).TotalSeconds * percentageX);
+
+            if (DraggingType == NodeType.Brightness)
+            {
+                Node.Brightness = (int)Clamp(percentageY * 100d, TimeProfile.MinBrightness, TimeProfile.MaxBrightness);
+            }
+
+            if (DraggingType == NodeType.Temperature)
+            {
+                //Node.Temperature = (int)Clamp(percentageY * 100d, TimeProfile.MinBrightness, TimeProfile.MaxBrightness);
+            }
+
+            SetPositions();
+        }
+
+        private double Clamp(double value, double min, double max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+
+            return value;
         }
     }
 }
