@@ -19,6 +19,9 @@ namespace Mlux.Wpf.Bindings
             get { return _brightness; }
             set
             {
+                value = Math.Max(value, TimeProfile.MinBrightness);
+                value = Math.Min(value, TimeProfile.MaxBrightness);
+
                 var changed = _brightness != value;
                 _brightness = value;
 
@@ -31,6 +34,9 @@ namespace Mlux.Wpf.Bindings
             get { return _temperature; }
             set
             {
+                value = Math.Max(value, TimeProfile.MinTemperature);
+                value = Math.Min(value, TimeProfile.MaxTemperature);
+
                 var changed = _temperature != value;
                 _temperature = value;
 
@@ -44,6 +50,15 @@ namespace Mlux.Wpf.Bindings
             get { return _timeOfDay; }
             set
             {
+                if (value.TotalDays > 1)
+                {
+                    value = TimeSpan.FromDays(1);
+                }
+                if (value.TotalDays < 0)
+                {
+                    value = TimeSpan.Zero;
+                }
+
                 var changed = _timeOfDay != value;
                 _timeOfDay = value;
 

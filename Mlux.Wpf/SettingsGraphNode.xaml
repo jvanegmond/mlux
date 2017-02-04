@@ -20,7 +20,7 @@
             <Style TargetType="{x:Type icons:IconBrightness}" BasedOn="{StaticResource {x:Type icons:IconBase}}"></Style>
             <Style TargetType="{x:Type icons:IconTemperature}" BasedOn="{StaticResource {x:Type icons:IconBase}}"></Style>
         </Grid.Resources>
-        <Rectangle x:Name="Divider" Width="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" Fill="Black"></Rectangle>
+        <Rectangle x:Name="Divider" Width="2" HorizontalAlignment="Center" VerticalAlignment="Stretch" Fill="Gray"></Rectangle>
         <Grid VerticalAlignment="Top" Margin="0,30,0,0" x:Name="BrightnessNode">
             <Ellipse Fill="DarkBlue"></Ellipse>
             <icons:IconBrightness></icons:IconBrightness>

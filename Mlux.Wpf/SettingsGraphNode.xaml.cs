@@ -23,6 +23,7 @@ namespace Mlux.Wpf
     public partial class SettingsGraphNode : UserControl
     {
         private NodeType _draggingType = NodeType.None;
+        private Point _mouseOffset;
 
         public NodeType DraggingType
         {
@@ -37,12 +38,12 @@ namespace Mlux.Wpf
                 if (_draggingType == NodeType.None)
                 {
                     // Stop
-                    Divider.Width = 1;
+                    Divider.Fill = new SolidColorBrush(Colors.Gray);
                 }
                 else
                 {
                     // Start
-                    Divider.Width = 2;
+                    Divider.Fill = new SolidColorBrush(Colors.Black);
                 }
             }
         }
@@ -58,9 +59,32 @@ namespace Mlux.Wpf
 
             Loaded += (sender, args) => SetPositions();
 
-            Divider.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.TimeOnly;
-            BrightnessNode.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.Brightness;
-            TemperatureNode.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.Temperature;
+            Divider.MouseLeftButtonDown += (sender, args) => StartDrag(NodeType.TimeOnly, args);
+            BrightnessNode.MouseLeftButtonDown += (sender, args) => StartDrag(NodeType.Brightness, args);
+            TemperatureNode.MouseLeftButtonDown += (sender, args) => StartDrag(NodeType.Temperature, args);
+        }
+
+        private void StartDrag(NodeType type, MouseButtonEventArgs args)
+        {
+            var uiElement = GetUiElementForType(type);
+
+            _mouseOffset = args.GetPosition(uiElement);
+
+            DraggingType = type;
+        }
+
+        private IInputElement GetUiElementForType(NodeType type)
+        {
+            switch (type)
+            {
+                case NodeType.TimeOnly:
+                    return Divider;
+                case NodeType.Brightness:
+                    return BrightnessNode;
+                case NodeType.Temperature:
+                    return TemperatureNode;
+            }
+            return null;
         }
 
         private void SetPositions()
@@ -81,11 +105,11 @@ namespace Mlux.Wpf
 
             // Set margin on brightness
             var percentage = ((double)Node.Brightness - TimeProfile.MinBrightness) / TimeProfile.MaxBrightness;
-            BrightnessNode.Margin = new Thickness(0, (1d - percentage) * height, 0, 0);
+            BrightnessNode.Margin = new Thickness(0, (1d - percentage) * height - BrightnessNode.ActualHeight, 0, 0);
 
             // Set margin on temperature
             percentage = ((double)Node.Temperature - TimeProfile.MinTemperature) / TimeProfile.MaxTemperature;
-            TemperatureNode.Margin = new Thickness(0, (1d - percentage) * height, 0, 0);
+            TemperatureNode.Margin = new Thickness(0, (1d - percentage) * height - TemperatureNode.ActualHeight, 0, 0);
         }
 
         public static double GetNodeValuePercentage(int value, NodeType type)
@@ -122,13 +146,16 @@ namespace Mlux.Wpf
             var percentageX = pos.X / width;
             var percentageY = 1d - (pos.Y / height);
 
+            // Time
             Node.TimeOfDay = TimeSpan.FromSeconds(TimeSpan.FromDays(1).TotalSeconds * percentageX);
 
+            // Brightness
             if (DraggingType == NodeType.Brightness)
             {
-                Node.Brightness = (int)Clamp(percentageY * 100d, TimeProfile.MinBrightness, TimeProfile.MaxBrightness);
+                Node.Brightness = (int)GetValue(percentageY, TimeProfile.MinBrightness, TimeProfile.MaxBrightness);
             }
 
+            // Temperature
             if (DraggingType == NodeType.Temperature)
             {
                 //Node.Temperature = (int)Clamp(percentageY * 100d, TimeProfile.MinBrightness, TimeProfile.MaxBrightness);
@@ -137,12 +164,17 @@ namespace Mlux.Wpf
             SetPositions();
         }
 
-        private double Clamp(double value, double min, double max)
+        private static double GetValue(double percentage, double min, double max)
         {
-            if (value < min) return min;
-            if (value > max) return max;
+            var difference = max - min;
 
-            return value;
+            percentage *= difference;
+            percentage += min;
+
+            if (percentage < min) return min;
+            if (percentage > max) return max;
+
+            return percentage;
         }
     }
 }
