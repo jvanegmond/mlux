@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Mlux.Lib.Time;
 using Mlux.Wpf.Bindings;
 
 namespace Mlux.Wpf
@@ -21,28 +22,22 @@ namespace Mlux.Wpf
     /// </summary>
     public partial class SettingsGraphNode : UserControl
     {
-        private NodeType _draggingType = NodeType.TimeOnly;
-        private TimeNodeView _node;
+        public NodeType DraggingType { get; private set; } = NodeType.None;
 
-        public event EventHandler StartDrag;
-        public event EventHandler MouseOver;
+        public TimeNodeView Node { get; }
 
-        public SettingsGraphNode()
+        public SettingsGraphNode(TimeNodeView node)
         {
+            Node = node;
+
             InitializeComponent();
             Cursor = Cursors.SizeWE;
 
             Loaded += (sender, args) => Redraw();
-        }
 
-        public TimeNodeView Node
-        {
-            get { return _node; }
-            set
-            {
-                _node = value;
-                Redraw();
-            }
+            Divider.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.TimeOnly;
+            BrightnessNode.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.Brightness;
+            TemperatureNode.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.Temperature;
         }
 
         private void Redraw()
@@ -54,111 +49,44 @@ namespace Mlux.Wpf
 
             Height = height;
 
-            var percentageWidth = _node.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
-            var x =  percentageWidth * width;
-
-            Margin = new Thickness(x, 0, 0, 0);
-        }
-
-        private void TemperatureNode_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            _draggingType = NodeType.Temperature;
-        }
-
-        private void BrightnessNode_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            _draggingType = NodeType.Brightness;
-        }
-
-        private void UIElement_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var width = ((Panel)Parent).ActualWidth;
-            var height = ((Panel)Parent).ActualHeight;
-
-            // Start drag
+            // Set margin to left to set it correctly on time
 
             var percentageWidth = Node.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
             var x = percentageWidth * width;
 
-            var draggableElement = new Grid
-            {
-                Margin = new Thickness(x, 0, 0, 0),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Stretch,
-                Cursor = Cursors.SizeWE,
-            };
-            draggableElement.MouseLeftButtonDown += DraggableOnMouseLeftButtonDown;
-            draggableElement.MouseEnter += DraggableMouseEnter;
+            Margin = new Thickness(x, 0, 0, 0);
 
-            // Draw vertical line
-            draggableElement.Children.Add(new Rectangle()
-            {
-                Fill = new SolidColorBrush(Colors.Blue),
-                Height = height,
-                Width = 20
-            });
+            // Set margin on brightness
+            var percentage = ((double)Node.Brightness - TimeProfile.MinBrightness) / TimeProfile.MaxBrightness;
+            BrightnessNode.Margin = new Thickness(0, (1d - percentage) * height, 0, 0);
 
-            // Draw draggable brightness node
-            var brightnessY = (1 - SettingsGraph.GetNodeValuePercentage(SettingsGraph.GetCurrentValue(Node, NodeType.Brightness), NodeType.Brightness)) * height;
-            var brightnessGrid = new Grid()
-            {
-                Children =
-                {
-                    new Ellipse()
-                    {
-                        Fill = new SolidColorBrush(Colors.Gray),
-                        Height = 15,
-                        Width = 15,
-                    }
-                },
-                Margin = new Thickness(0, brightnessY, 0, 0),
-                VerticalAlignment = VerticalAlignment.Top
-            };
-            brightnessGrid.MouseLeftButtonDown += BrightnessGrid_MouseLeftButtonDown;
-            draggableElement.Children.Add(brightnessGrid);
-
-            // Draw draggable temperature node
-            var temperatureY = (1 - SettingsGraph.GetNodeValuePercentage(SettingsGraph.GetCurrentValue(Node, NodeType.Temperature), NodeType.Temperature)) * height;
-            var temperatureGrid = new Grid()
-            {
-                Children =
-                {
-                    new Ellipse()
-                    {
-                        Fill = new SolidColorBrush(Colors.Red),
-                        Height = 15,
-                        Width = 15,
-                    }
-                },
-                Margin = new Thickness(0, temperatureY, 0, 0),
-                VerticalAlignment = VerticalAlignment.Top
-            };
-            temperatureGrid.MouseLeftButtonDown += TemperatureGrid_MouseLeftButtonDown;
-            draggableElement.Children.Add(temperatureGrid);
-
-            StartDrag?.Invoke(this, EventArgs.Empty);
+            // Set margin on temperature
+            percentage = ((double)Node.Temperature - TimeProfile.MinTemperature) / TimeProfile.MaxTemperature;
+            TemperatureNode.Margin = new Thickness(0, (1d - percentage) * height, 0, 0);
         }
 
-        private void TemperatureGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        public static double GetNodeValuePercentage(int value, NodeType type)
         {
-            _draggingType = NodeType.Temperature;
+            if (type == NodeType.Brightness)
+            {
+                return (value - TimeProfile.MinBrightness) / (double)(TimeProfile.MaxBrightness - TimeProfile.MinBrightness);
+            }
+            else
+            {
+                return ((double)value - (TimeProfile.MaxTemperature - TimeProfile.MinTemperature)) / TimeProfile.MinTemperature;
+            }
         }
 
-        private void BrightnessGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        public static int GetCurrentValue(TimeNodeView node, NodeType type)
         {
-            _draggingType = NodeType.Brightness;
+            if (type == NodeType.Brightness)
+            {
+                return node.Brightness;
+            }
+            else
+            {
+                return node.Temperature;
+            }
         }
-
-        private void DraggableOnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            Mouse.OverrideCursor = Cursors.SizeWE;
-        }
-
-        private void DraggableMouseEnter(object sender, MouseEventArgs e)
-        {
-            // Set the top bar values to the currently mouse-over node
-            MouseOver?.Invoke(this, EventArgs.Empty);
-        }
-
     }
 }

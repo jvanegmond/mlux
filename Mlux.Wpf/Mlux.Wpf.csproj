@@ -62,6 +62,22 @@
     <Compile Include="Bindings\NotifyPropertyChangedBase.cs" />
     <Compile Include="Bindings\TimeProfileView.cs" />
     <Compile Include="Bindings\TimeNodeView.cs" />
+    <Compile Include="Icons\IconBase.cs" />
+    <Compile Include="Icons\IconBrightness.xaml.cs">
+      <DependentUpon>IconBrightness.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Icons\IconClock.xaml.cs">
+      <DependentUpon>IconClock.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Icons\IconSundown.xaml.cs">
+      <DependentUpon>IconSundown.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Icons\IconSunrise.xaml.cs">
+      <DependentUpon>IconSunrise.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Icons\IconTemperature.xaml.cs">
+      <DependentUpon>IconTemperature.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MainWindowNode.xaml.cs">
       <DependentUpon>MainWindowNode.xaml</DependentUpon>
     </Compile>
@@ -75,6 +91,26 @@
     <Compile Include="SettingsGraphNode.xaml.cs">
       <DependentUpon>SettingsGraphNode.xaml</DependentUpon>
     </Compile>
+    <Page Include="Icons\IconBrightness.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Icons\IconClock.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Icons\IconSundown.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Icons\IconSunrise.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Icons\IconTemperature.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

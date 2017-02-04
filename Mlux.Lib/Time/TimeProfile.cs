@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
@@ -36,6 +37,9 @@ namespace Mlux.Lib.Time
         // next node      =   first node after given time
         public List<TimeNode> Nodes { get; }
 
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+
         public TimeProfile()
         {
             Nodes = new List<TimeNode>();
@@ -67,6 +71,16 @@ namespace Mlux.Lib.Time
         public object GetCurrentValue(TimeNode previous, TimeNode next, TimeSpan time, string nodePropertyName)
         {
             return LinearNodeInterpolation.Interpolate(time, previous, next, nodePropertyName);
+        }
+
+        public TimeSpan GetSunrise()
+        {
+            return new Twilight2().GetData(DateTime.Now, Latitude, Longitude, 1).SunRise.TimeOfDay; // TODO: Efficiency
+        }
+
+        public TimeSpan GetSundown()
+        {
+            return new Twilight2().GetData(DateTime.Now, Latitude, Longitude, 1).SunSet.TimeOfDay; // TODO: Efficiency
         }
 
         public void AddNode(TimeNode node)

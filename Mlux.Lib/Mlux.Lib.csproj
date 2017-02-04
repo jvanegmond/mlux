@@ -71,6 +71,7 @@
     <Compile Include="Time\TimeNode.cs" />
     <Compile Include="Display\Monitor.cs" />
     <Compile Include="Time\TimeUtil.cs" />
+    <Compile Include="Time\Twilight2.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

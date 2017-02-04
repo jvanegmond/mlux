@@ -29,7 +29,7 @@ namespace Mlux.Wpf
     public partial class MainWindow : Window
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private const string SavedProfilePath = "profile.xml";
+        private static readonly string _savedProfilePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "mlux", "profile.xml");
 
         private readonly TimeProfileView _profile;
         private readonly TrayIcon _trayIcon;
@@ -122,9 +122,9 @@ namespace Mlux.Wpf
             Log.Info("Loading profile");
 
             TimeProfile result;
-            if (File.Exists(SavedProfilePath))
+            if (File.Exists(_savedProfilePath))
             {
-                var savedProfileData = File.ReadAllText(SavedProfilePath, Encoding.UTF8);
+                var savedProfileData = File.ReadAllText(_savedProfilePath, Encoding.UTF8);
                 result = TimeProfileSerializer.Deserialize(savedProfileData);
             }
             else
@@ -146,7 +146,10 @@ namespace Mlux.Wpf
         {
             var profileString = TimeProfileSerializer.Serialize(profile);
 
-            File.WriteAllText(SavedProfilePath, profileString, Encoding.UTF8);
+            var directory = System.IO.Path.GetDirectoryName(_savedProfilePath);
+            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+            File.WriteAllText(_savedProfilePath, profileString, Encoding.UTF8);
 
             Log.Info("Profile saved");
 
