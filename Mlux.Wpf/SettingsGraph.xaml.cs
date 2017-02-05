@@ -23,7 +23,7 @@ namespace Mlux.Wpf
     public enum NodeType
     {
         None,
-        TimeOnly,
+        Time,
         Brightness,
         Temperature
     }
@@ -99,32 +99,6 @@ namespace Mlux.Wpf
             }
 
             Mouse.OverrideCursor = null;
-        }
-
-        private void SetNodeValuePercentage(TimeNodeView node, double percentage, NodeType type)
-        {
-            if (type == NodeType.Brightness)
-            {
-                // Round it to 5
-                node.Brightness = RoundTo((int)(percentage * 100d), 5);
-            }
-            else
-            {
-                node.Temperature = RoundTo((int)((percentage * 3200d) + 3300d), 50);
-            }
-        }
-
-        private int RoundTo(int value, int roundTo)
-        {
-            var remainder = value % roundTo;
-            if (remainder <= (roundTo / 2))
-            {
-                return value - remainder; // round down
-            }
-            else
-            {
-                return value - remainder + roundTo; // round up
-            }
         }
 
         private void DrawChrome()

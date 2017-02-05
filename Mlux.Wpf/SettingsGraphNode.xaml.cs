@@ -22,8 +22,9 @@ namespace Mlux.Wpf
     /// </summary>
     public partial class SettingsGraphNode : UserControl
     {
+        private const int AllowedOverlapPixels = 3;
+
         private NodeType _draggingType = NodeType.None;
-        private Point _mouseOffset;
 
         public NodeType DraggingType
         {
@@ -58,33 +59,17 @@ namespace Mlux.Wpf
             Cursor = Cursors.SizeWE;
 
             Loaded += (sender, args) => SetPositions();
-
-            Divider.MouseLeftButtonDown += (sender, args) => StartDrag(NodeType.TimeOnly, args);
-            BrightnessNode.MouseLeftButtonDown += (sender, args) => StartDrag(NodeType.Brightness, args);
-            TemperatureNode.MouseLeftButtonDown += (sender, args) => StartDrag(NodeType.Temperature, args);
-        }
-
-        private void StartDrag(NodeType type, MouseButtonEventArgs args)
-        {
-            var uiElement = GetUiElementForType(type);
-
-            _mouseOffset = args.GetPosition(uiElement);
-
-            DraggingType = type;
-        }
-
-        private IInputElement GetUiElementForType(NodeType type)
-        {
-            switch (type)
+            Node.PropertyChanged += (sender, args) =>
             {
-                case NodeType.TimeOnly:
-                    return Divider;
-                case NodeType.Brightness:
-                    return BrightnessNode;
-                case NodeType.Temperature:
-                    return TemperatureNode;
-            }
-            return null;
+                if (DraggingType == NodeType.None)
+                {
+                    SetPositions();
+                }
+            };
+
+            Divider.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.Time;
+            BrightnessNode.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.Brightness;
+            TemperatureNode.MouseLeftButtonDown += (sender, args) => DraggingType = NodeType.Temperature;
         }
 
         private void SetPositions()
@@ -98,60 +83,57 @@ namespace Mlux.Wpf
 
             // Set margin to left to set it correctly on time
             var percentageWidth = Node.TimeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
-            var x = (percentageWidth * width) + (ActualWidth / 2);
+            var timeMargin = (percentageWidth * width) - (ActualWidth / 2);
 
-            Margin = new Thickness(x, 0, 0, 0);
+            Margin = new Thickness(timeMargin, 0, 0, 0);
 
-            // Set margin on brightness
-            var startOffset = BrightnessNode.ActualHeight;
-            height -= startOffset * 2;
+            // As the margin is calculated from the top of the element. This prevents setting it to full height (at 0% of value) will push it out of the parent element's area.
+            var nodeHeight = BrightnessNode.ActualHeight;
+            height -= nodeHeight;
 
-            var percentage = ((double)Node.Brightness - TimeProfile.MinBrightness) / TimeProfile.MaxBrightness;
-            BrightnessNode.Margin = new Thickness(0, startOffset + ((1d - percentage) * height), 0, 0);
+            // Calculate brightness and temperature vertical margins (from the top)
+            var brightnessPercentage = ((double)Node.Brightness - TimeProfile.MinBrightness) / (TimeProfile.MaxBrightness - TimeProfile.MinBrightness);
+            var brightnessMargin = (1d - brightnessPercentage) * height;
 
-            // Set margin on temperature
-            percentage = ((double)Node.Temperature - TimeProfile.MinTemperature) / TimeProfile.MaxTemperature;
-            TemperatureNode.Margin = new Thickness(0, startOffset + ((1d - percentage) * height), 0, 0);
-        }
+            var temperaturePercentage = ((double)Node.Temperature - TimeProfile.MinTemperature) / (TimeProfile.MaxTemperature - TimeProfile.MinTemperature);
+            var temperatureMargin = (1d - temperaturePercentage) * height;
 
-        public static double GetNodeValuePercentage(int value, NodeType type)
-        {
-            if (type == NodeType.Brightness)
+            // Check if the margins are possible colliding the two nodes together
+            var nodeWidth = BrightnessNode.ActualWidth;
+            var horizontalOffset = 0d;
+            if (Math.Abs(brightnessMargin - temperatureMargin) < (nodeHeight - AllowedOverlapPixels))
             {
-                return (value - TimeProfile.MinBrightness) / (double)(TimeProfile.MaxBrightness - TimeProfile.MinBrightness);
+                horizontalOffset = nodeWidth + 1;
             }
-            else
-            {
-                return ((double)value - (TimeProfile.MaxTemperature - TimeProfile.MinTemperature)) / TimeProfile.MinTemperature;
-            }
-        }
 
-        public static int GetCurrentValue(TimeNodeView node, NodeType type)
-        {
-            if (type == NodeType.Brightness)
-            {
-                return node.Brightness;
-            }
-            else
-            {
-                return node.Temperature;
-            }
+            // Margins are calculated, set it
+            BrightnessNode.Margin = new Thickness(-1 * horizontalOffset, brightnessMargin, 0, 0);
+            TemperatureNode.Margin = new Thickness(horizontalOffset, temperatureMargin, 0, 0);
         }
 
         public void Drag(MouseEventArgs e)
         {
+            // Do not process mouse move events when we are not dragging anything (our parent should catch this but still better check)
+            if (DraggingType == NodeType.None) return;
+
             var pos = e.GetPosition((Panel)Parent);
 
             var width = ((Panel)Parent).ActualWidth;
             var height = ((Panel)Parent).ActualHeight;
 
-            var percentageX = pos.X / width;
-            var percentageY = 1d - (pos.Y / height);
+            // Set TimeOfDay correctly
+            if (DraggingType == NodeType.Time)
+            {
+                var percentageX = pos.X/width;
+                Node.TimeOfDay = TimeSpan.FromSeconds(TimeSpan.FromDays(1).TotalSeconds*percentageX);
+            }
 
-            // Time
-            Node.TimeOfDay = TimeSpan.FromSeconds(TimeSpan.FromDays(1).TotalSeconds * percentageX);
+            // Set values correctly (Brightness or Temperature)
+            var nodeHeight = BrightnessNode.ActualHeight;
+            height -= nodeHeight;
 
-            // Brightness
+            var percentageY = 1d - ((pos.Y - (nodeHeight / 2)) / height);
+
             if (DraggingType == NodeType.Brightness)
             {
                 Node.Brightness = (int)GetValue(percentageY, TimeProfile.MinBrightness, TimeProfile.MaxBrightness);
@@ -160,7 +142,7 @@ namespace Mlux.Wpf
             // Temperature
             if (DraggingType == NodeType.Temperature)
             {
-                //Node.Temperature = (int)Clamp(percentageY * 100d, TimeProfile.MinBrightness, TimeProfile.MaxBrightness);
+                Node.Temperature = (int)GetValue(percentageY, TimeProfile.MinTemperature, TimeProfile.MaxTemperature);
             }
 
             SetPositions();

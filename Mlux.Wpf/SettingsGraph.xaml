@@ -20,14 +20,29 @@
         <Canvas x:Name="GraphCanvas">
         </Canvas>
         <Button x:Name="AddNew" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20" Height="20" Click="AddNew_OnClick">+</Button>
-        <Grid VerticalAlignment="Top" Margin="50,0" d:DataContext="{d:DesignInstance bindings:TimeNodeView, IsDesignTimeCreatable=True}" x:Name="SelectedNode">
+        <Grid VerticalAlignment="Top" Height="18" Margin="50,0" d:DataContext="{d:DesignInstance bindings:TimeNodeView, IsDesignTimeCreatable=True}" x:Name="SelectedNode">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
+            
+            <StackPanel Orientation="Horizontal" Grid.Column="0">
+                <icons:IconBrightness Color="Black"></icons:IconBrightness>
+                <TextBox Text="{Binding Brightness}" Width="100"></TextBox>
+            </StackPanel>
 
-            <TextBlock Grid.Column="0" Text="{Binding Brightness, StringFormat=Brightness: {0}%}"></TextBlock>
+            <StackPanel Orientation="Horizontal" Grid.Column="1">
+                <icons:IconTemperature Color="Black"></icons:IconTemperature>
+                <TextBox Text="{Binding Temperature}" Width="100"></TextBox>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Grid.Column="2">
+                <icons:IconClock Color="Black"></icons:IconClock>
+                <TextBox Text="{Binding TimeOfDay}" Width="100"></TextBox>
+            </StackPanel>
+
+            <!--<TextBlock Grid.Column="0" Text="{Binding Brightness, StringFormat=Brightness: {0}%}"></TextBlock>
             <TextBlock Grid.Column="1" Text="{Binding Temperature, StringFormat=Temperature: {0}K}"></TextBlock>
             <TextBlock Grid.Column="2">
                 <TextBlock.Text>
@@ -36,7 +51,7 @@
                         <Binding Path="TimeOfDay.Minutes"/>
                     </MultiBinding>
                 </TextBlock.Text>
-            </TextBlock>
+            </TextBlock>-->
         </Grid>
         <Button x:Name="Delete" HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20" Click="Delete_OnClick">x</Button>
     </Grid>

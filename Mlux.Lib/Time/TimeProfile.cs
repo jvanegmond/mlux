@@ -24,7 +24,7 @@ namespace Mlux.Lib.Time
     public class TimeProfile
     {
         public const int MaxTemperature = 6500;
-        public const int MinTemperature = 3200;
+        public const int MinTemperature = 2000;
         public const int MinBrightness = 0;
         public const int MaxBrightness = 100;
 

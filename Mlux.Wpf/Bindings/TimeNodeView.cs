@@ -22,6 +22,8 @@ namespace Mlux.Wpf.Bindings
                 value = Math.Max(value, TimeProfile.MinBrightness);
                 value = Math.Min(value, TimeProfile.MaxBrightness);
 
+                value = RoundTo(value, 2);
+
                 var changed = _brightness != value;
                 _brightness = value;
 
@@ -36,6 +38,8 @@ namespace Mlux.Wpf.Bindings
             {
                 value = Math.Max(value, TimeProfile.MinTemperature);
                 value = Math.Min(value, TimeProfile.MaxTemperature);
+
+                value = RoundTo(value, 10);
 
                 var changed = _temperature != value;
                 _temperature = value;
@@ -58,6 +62,9 @@ namespace Mlux.Wpf.Bindings
                 {
                     value = TimeSpan.Zero;
                 }
+
+                // Round off to nearest 15 minutes
+                value = new TimeSpan(value.Days, value.Hours, RoundTo(value.Minutes, 15), 0);
 
                 var changed = _timeOfDay != value;
                 _timeOfDay = value;
@@ -95,6 +102,19 @@ namespace Mlux.Wpf.Bindings
             Brightness = (int)node.Properties.First(_ => _.Name == NodeProperty.Brightness).Value;
             Temperature = (int)node.Properties.First(_ => _.Name == NodeProperty.ColorTemperature).Value;
             TimeOfDay = node.TimeOfDay;
+        }
+
+        private static int RoundTo(int value, int roundTo)
+        {
+            var remainder = value % roundTo;
+            if (remainder <= (roundTo / 2))
+            {
+                return value - remainder; // round down
+            }
+            else
+            {
+                return value - remainder + roundTo; // round up
+            }
         }
     }
 }
