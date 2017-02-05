@@ -57,6 +57,11 @@ namespace Mlux.Wpf
                 DrawChrome();
             };
 
+            Loaded += (sender, args) =>
+            {
+                DrawNodes();
+            };
+
             MouseLeave += (sender, args) => StopDrag();
             MouseLeftButtonUp += (sender, args) => StopDrag();
         }
@@ -68,13 +73,59 @@ namespace Mlux.Wpf
             var margin = ChromeCanvas.Margin;
             GraphCanvas.Margin = new Thickness(margin.Left + AxisWidth + 1, margin.Top, margin.Right, margin.Bottom + AxisHeight);
 
+            // Draw the first and last gradientstop (offset 0 and 1) with interpolated values based on midnight
+            var lastNode = _profile.Last();
+            var firstNode = _profile.First();
+
+            lastNode.PropertyChanged += (sender, args) => UpdateFirstLastGradientStops(lastNode, firstNode);
+            firstNode.PropertyChanged += (sender, args) => UpdateFirstLastGradientStops(lastNode, firstNode);
+
+            UpdateFirstLastGradientStops(lastNode, firstNode);
+
             // Draw the nodes
             foreach (var node in _profile.Nodes)
             {
                 var uiNode = new SettingsGraphNode(node);
                 GraphCanvas.Children.Add(uiNode);
                 uiNode.MouseEnter += (sender, args) => SelectedNode.DataContext = ((SettingsGraphNode)sender).Node;
+
+                var gradientStop = new GradientStop();
+
+                SetGradientStop(node, gradientStop);
+                node.PropertyChanged += (sender, args) => SetGradientStop(node, gradientStop);
+
+                BackgroundBrush.GradientStops.Add(gradientStop);
             }
+        }
+
+        private void UpdateFirstLastGradientStops(TimeNodeView lastNode, TimeNodeView firstNode)
+        {
+            var brightness = (int)LinearNodeInterpolation.Interpolate(TimeSpan.Zero, lastNode.UnderlyingNode, firstNode.UnderlyingNode, NodeProperty.Brightness);
+            var temperature = (int)LinearNodeInterpolation.Interpolate(TimeSpan.Zero, lastNode.UnderlyingNode, firstNode.UnderlyingNode, NodeProperty.ColorTemperature);
+
+            var firstGradientStop = new GradientStop();
+            SetGradientStop(TimeSpan.Zero, brightness, temperature, firstGradientStop);
+            BackgroundBrush.GradientStops.Add(firstGradientStop);
+
+            var lastGradientStop = new GradientStop();
+            SetGradientStop(TimeSpan.FromDays(1), brightness, temperature, lastGradientStop);
+            BackgroundBrush.GradientStops.Add(lastGradientStop);
+        }
+
+        private void SetGradientStop(TimeNodeView node, GradientStop gradientStop)
+        {
+            SetGradientStop(node.TimeOfDay, node.Brightness, node.Temperature, gradientStop);
+        }
+
+        private void SetGradientStop(TimeSpan timeOfDay, int brightness, int temperature, GradientStop gradientStop)
+        {
+            var percentageWidth = timeOfDay.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
+
+            gradientStop.Offset = percentageWidth;
+
+            var color = GetBackgroundColor(temperature, brightness);
+
+            gradientStop.Color = color;
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
@@ -223,15 +274,12 @@ namespace Mlux.Wpf
             // get color gamma adjustment
             var gamma = ColorTemperature.GetColorProfile(temperature);
 
-            // turn brightness 0-100 into a value between 0.6-1.0 (first between 0-0.4 then add 0.6)
-            var brightnessAdjust = (brightness / 250d) + 0.6d;
-
             return new Color()
             {
                 A = byte.MaxValue,
-                R = (byte)(byte.MaxValue * brightnessAdjust * gamma.Red),
-                G = (byte)(byte.MaxValue * brightnessAdjust * gamma.Green),
-                B = (byte)(byte.MaxValue * brightnessAdjust * gamma.Blue),
+                R = (byte)(byte.MaxValue * gamma.Red),
+                G = (byte)(byte.MaxValue * gamma.Green),
+                B = (byte)(byte.MaxValue * gamma.Blue),
             };
         }
 

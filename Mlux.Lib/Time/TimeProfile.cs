@@ -68,11 +68,6 @@ namespace Mlux.Lib.Time
             return $"{GetType()} with {Nodes.Count} nodes";
         }
 
-        public object GetCurrentValue(TimeNode previous, TimeNode next, TimeSpan time, string nodePropertyName)
-        {
-            return LinearNodeInterpolation.Interpolate(time, previous, next, nodePropertyName);
-        }
-
         public TimeSpan GetSunrise()
         {
             return new Twilight2().GetData(DateTime.Now, Latitude, Longitude, 1).SunRise.TimeOfDay; // TODO: Efficiency

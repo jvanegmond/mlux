@@ -9,15 +9,13 @@
              mc:Ignorable="d" 
              d:DesignHeight="400" d:DesignWidth="642" Background="White">
     <Grid>
-        <Grid x:Name="Background" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,20,0,0">
-            <Grid.Background>
-                <LinearGradientBrush x:Name="BackgroundBrush" StartPoint="0,0" EndPoint="1,0">
-                </LinearGradientBrush>
-            </Grid.Background>
-        </Grid>
         <Canvas x:Name="ChromeCanvas" Margin="0,20,20,0">
         </Canvas>
         <Canvas x:Name="GraphCanvas">
+            <Canvas.Background>
+                <LinearGradientBrush x:Name="BackgroundBrush" StartPoint="0,0" EndPoint="1,0">
+                </LinearGradientBrush>
+            </Canvas.Background>
         </Canvas>
         <Button x:Name="AddNew" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20" Height="20" Click="AddNew_OnClick">+</Button>
         <Grid VerticalAlignment="Top" Height="18" Margin="50,0" d:DataContext="{d:DesignInstance bindings:TimeNodeView, IsDesignTimeCreatable=True}" x:Name="SelectedNode">

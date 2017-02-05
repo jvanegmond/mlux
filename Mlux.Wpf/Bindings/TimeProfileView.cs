@@ -37,5 +37,35 @@ namespace Mlux.Wpf.Bindings
             var timeNodeNext = UnderlyingProfile.Previous(now);
             return Nodes.First(_ => _.UnderlyingNode == timeNodeNext);
         }
+
+        public TimeNodeView First()
+        {
+            var minValue = TimeSpan.MaxValue;
+            TimeNodeView minResult = null;
+            foreach (var node in Nodes)
+            {
+                if (node.TimeOfDay < minValue)
+                {
+                    minResult = node;
+                    minValue = node.TimeOfDay;
+                }
+            }
+            return minResult;
+        }
+
+        public TimeNodeView Last()
+        {
+            var maxValue = TimeSpan.MinValue;
+            TimeNodeView minResult = null;
+            foreach (var node in Nodes)
+            {
+                if (node.TimeOfDay > maxValue)
+                {
+                    minResult = node;
+                    maxValue = node.TimeOfDay;
+                }
+            }
+            return minResult;
+        }
     }
 }
