@@ -77,8 +77,15 @@ namespace Mlux.Wpf
             var lastNode = _profile.Last();
             var firstNode = _profile.First();
 
-            lastNode.PropertyChanged += (sender, args) => UpdateFirstLastGradientStops(lastNode, firstNode);
-            firstNode.PropertyChanged += (sender, args) => UpdateFirstLastGradientStops(lastNode, firstNode);
+            if (BackgroundBrush.GradientStops.Count == 0)
+            {
+
+                BackgroundBrush.GradientStops.Add(new GradientStop(Colors.DeepPink, 0));
+                BackgroundBrush.GradientStops.Add(new GradientStop(Colors.DeepPink, 1));
+
+                lastNode.PropertyChanged += (sender, args) => UpdateFirstLastGradientStops(lastNode, firstNode);
+                firstNode.PropertyChanged += (sender, args) => UpdateFirstLastGradientStops(lastNode, firstNode);
+            }
 
             UpdateFirstLastGradientStops(lastNode, firstNode);
 
@@ -103,13 +110,8 @@ namespace Mlux.Wpf
             var brightness = (int)LinearNodeInterpolation.Interpolate(TimeSpan.Zero, lastNode.UnderlyingNode, firstNode.UnderlyingNode, NodeProperty.Brightness);
             var temperature = (int)LinearNodeInterpolation.Interpolate(TimeSpan.Zero, lastNode.UnderlyingNode, firstNode.UnderlyingNode, NodeProperty.ColorTemperature);
 
-            var firstGradientStop = new GradientStop();
-            SetGradientStop(TimeSpan.Zero, brightness, temperature, firstGradientStop);
-            BackgroundBrush.GradientStops.Add(firstGradientStop);
-
-            var lastGradientStop = new GradientStop();
-            SetGradientStop(TimeSpan.FromDays(1), brightness, temperature, lastGradientStop);
-            BackgroundBrush.GradientStops.Add(lastGradientStop);
+            SetGradientStop(TimeSpan.Zero, brightness, temperature, BackgroundBrush.GradientStops[0]);
+            SetGradientStop(TimeSpan.FromDays(1), brightness, temperature, BackgroundBrush.GradientStops[1]);
         }
 
         private void SetGradientStop(TimeNodeView node, GradientStop gradientStop)
