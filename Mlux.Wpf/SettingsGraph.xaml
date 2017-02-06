@@ -18,7 +18,7 @@
             </Canvas.Background>
         </Canvas>
         <Button x:Name="AddNew" HorizontalAlignment="Left" VerticalAlignment="Top" Width="20" Height="20" Click="AddNew_OnClick">+</Button>
-        <Grid VerticalAlignment="Top" Height="18" Margin="50,0" d:DataContext="{d:DesignInstance bindings:TimeNodeView, IsDesignTimeCreatable=True}" x:Name="SelectedNode">
+        <Grid VerticalAlignment="Top" Height="20" Margin="50,0" d:DataContext="{d:DesignInstance bindings:TimeNodeView, IsDesignTimeCreatable=True}" x:Name="SelectedNode">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>

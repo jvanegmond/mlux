@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Mlux.Lib.Time;
 using Mlux.Wpf.Bindings;
 
@@ -20,11 +12,16 @@ namespace Mlux.Wpf
     /// <summary>
     /// Interaction logic for SetttingsGraphNode.xaml
     /// </summary>
-    public partial class SettingsGraphNode : UserControl
+    public partial class SettingsGraphNode : UserControl, INotifyPropertyChanged
     {
         private const int AllowedOverlapPixels = 3;
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+
         private NodeType _draggingType = NodeType.None;
+        private Point _temperatureCenter;
+        private Point _brightnessCenter;
 
         public NodeType DraggingType
         {
@@ -46,6 +43,26 @@ namespace Mlux.Wpf
                     // Start
                     Divider.Fill = new SolidColorBrush(Colors.Black);
                 }
+            }
+        }
+
+        public Point BrightnessCenter
+        {
+            get { return _brightnessCenter; }
+            set
+            {
+                _brightnessCenter = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BrightnessCenter)));
+            }
+        }
+
+        public Point TemperatureCenter
+        {
+            get { return _temperatureCenter; }
+            set
+            {
+                _temperatureCenter = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TemperatureCenter)));
             }
         }
 
@@ -109,6 +126,9 @@ namespace Mlux.Wpf
             // Margins are calculated, set it
             BrightnessNode.Margin = new Thickness(-1 * horizontalOffset, brightnessMargin, 0, 0);
             TemperatureNode.Margin = new Thickness(horizontalOffset, temperatureMargin, 0, 0);
+
+            BrightnessCenter = new Point(timeMargin + nodeWidth, BrightnessNode.Margin.Top + (BrightnessNode.ActualHeight / 2));
+            TemperatureCenter = new Point(timeMargin + nodeWidth, TemperatureNode.Margin.Top + (TemperatureNode.ActualHeight / 2));
         }
 
         public void Drag(MouseEventArgs e)
@@ -124,8 +144,8 @@ namespace Mlux.Wpf
             // Set TimeOfDay correctly
             if (DraggingType == NodeType.Time)
             {
-                var percentageX = pos.X/width;
-                Node.TimeOfDay = TimeSpan.FromSeconds(TimeSpan.FromDays(1).TotalSeconds*percentageX);
+                var percentageX = pos.X / width;
+                Node.TimeOfDay = TimeSpan.FromSeconds(TimeSpan.FromDays(1).TotalSeconds * percentageX);
             }
 
             // Set values correctly (Brightness or Temperature)

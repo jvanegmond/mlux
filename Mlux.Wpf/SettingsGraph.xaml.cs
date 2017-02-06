@@ -32,20 +32,10 @@ namespace Mlux.Wpf
     /// </summary>
     public partial class SettingsGraph : UserControl
     {
-
-        private TimeProfileView _profile;
-
         public const int AxisWidth = 50;
         public const int AxisHeight = 30;
 
-        public TimeProfileView Profile
-        {
-            get { return _profile; }
-            set
-            {
-                _profile = value;
-            }
-        }
+        public TimeProfileView Profile { get; set; }
 
         public SettingsGraph()
         {
@@ -73,27 +63,12 @@ namespace Mlux.Wpf
             var margin = ChromeCanvas.Margin;
             GraphCanvas.Margin = new Thickness(margin.Left + AxisWidth + 1, margin.Top, margin.Right, margin.Bottom + AxisHeight);
 
-            // Draw the first and last gradientstop (offset 0 and 1) with interpolated values based on midnight
-            var lastNode = _profile.Last();
-            var firstNode = _profile.First();
-
-            if (BackgroundBrush.GradientStops.Count == 0)
-            {
-
-                BackgroundBrush.GradientStops.Add(new GradientStop(Colors.DeepPink, 0));
-                BackgroundBrush.GradientStops.Add(new GradientStop(Colors.DeepPink, 1));
-
-                lastNode.PropertyChanged += (sender, args) => UpdateFirstLastGradientStops(lastNode, firstNode);
-                firstNode.PropertyChanged += (sender, args) => UpdateFirstLastGradientStops(lastNode, firstNode);
-            }
-
-            UpdateFirstLastGradientStops(lastNode, firstNode);
-
             // Draw the nodes
-            foreach (var node in _profile.Nodes)
+            foreach (var node in Profile.Nodes)
             {
                 var uiNode = new SettingsGraphNode(node);
                 GraphCanvas.Children.Add(uiNode);
+
                 uiNode.MouseEnter += (sender, args) => SelectedNode.DataContext = ((SettingsGraphNode)sender).Node;
 
                 var gradientStop = new GradientStop();
@@ -103,15 +78,70 @@ namespace Mlux.Wpf
 
                 BackgroundBrush.GradientStops.Add(gradientStop);
             }
+
+            // Draw lines, start and stop line are based on interpolated values on midnight
+            var lastNode = Profile.Last();
+            var firstNode = Profile.First();
+
+            var nextLine = new Line
+            {
+                Stroke = new SolidColorBrush(Colors.DarkBlue),
+                Name = "FirstLine"
+            };
+            GraphCanvas.Children.Insert(0, nextLine);
+
+            foreach (var node in GraphCanvas.Children.OfType<SettingsGraphNode>().ToArray())
+            {
+                var previousLine = nextLine;
+                nextLine = new Line() { Stroke = new SolidColorBrush(Colors.DarkBlue) };
+                GraphCanvas.Children.Insert(0, nextLine);
+
+                var previousLineCopy = previousLine;
+                var nextLineCopy = nextLine;
+                node.PropertyChanged += (sender, args) =>
+                {
+                    var senderNode = (SettingsGraphNode)sender;
+
+                    previousLineCopy.X2 = senderNode.BrightnessCenter.X;
+                    previousLineCopy.Y2 = senderNode.BrightnessCenter.Y;
+
+                    nextLineCopy.X1 = previousLineCopy.X2;
+                    nextLineCopy.Y1 = previousLineCopy.Y2;
+                };
+            }
+            nextLine.Name = "LastLine";
+
+            // Draw the first and last gradientstop (offset 0 and 1) again with interpolated values based on midnight
+            if (BackgroundBrush.GradientStops.Count == Profile.Nodes.Count)
+            {
+                // Order in BackGroundBrush.GradientStops is used by UpdateFirstLast
+                BackgroundBrush.GradientStops.Insert(0, new GradientStop(Colors.DeepPink, 0));
+                BackgroundBrush.GradientStops.Insert(1, new GradientStop(Colors.DeepPink, 1));
+
+                lastNode.PropertyChanged += (sender, args) => UpdateFirstLast(lastNode, firstNode);
+                firstNode.PropertyChanged += (sender, args) => UpdateFirstLast(lastNode, firstNode);
+            }
+
+            UpdateFirstLast(lastNode, firstNode);
         }
 
-        private void UpdateFirstLastGradientStops(TimeNodeView lastNode, TimeNodeView firstNode)
+        private void UpdateFirstLast(TimeNodeView lastNode, TimeNodeView firstNode)
         {
             var brightness = (int)LinearNodeInterpolation.Interpolate(TimeSpan.Zero, lastNode.UnderlyingNode, firstNode.UnderlyingNode, NodeProperty.Brightness);
             var temperature = (int)LinearNodeInterpolation.Interpolate(TimeSpan.Zero, lastNode.UnderlyingNode, firstNode.UnderlyingNode, NodeProperty.ColorTemperature);
 
             SetGradientStop(TimeSpan.Zero, brightness, temperature, BackgroundBrush.GradientStops[0]);
             SetGradientStop(TimeSpan.FromDays(1), brightness, temperature, BackgroundBrush.GradientStops[1]);
+
+            var firstLine = GraphCanvas.Children.OfType<Line>().First(_ => _.Name == "FirstLine");
+            var lastLine = GraphCanvas.Children.OfType<Line>().First(_ => _.Name == "LastLine");
+
+            var brightnessPercentage = ((double)brightness - TimeProfile.MinBrightness) / (TimeProfile.MaxBrightness - TimeProfile.MinBrightness);
+            var brightnessAbsoluteHeight = (1d - brightnessPercentage) * GraphCanvas.ActualHeight;
+
+            firstLine.Y1 = brightnessAbsoluteHeight;
+            lastLine.Y2 = brightnessAbsoluteHeight;
+            lastLine.X2 = GraphCanvas.ActualWidth;
         }
 
         private void SetGradientStop(TimeNodeView node, GradientStop gradientStop)
@@ -190,8 +220,8 @@ namespace Mlux.Wpf
             }
 
             // Draw sunrise/sundown on scale
-            var sunriseTime = _profile.UnderlyingProfile.GetSunrise();
-            var sundownTime = _profile.UnderlyingProfile.GetSundown();
+            var sunriseTime = Profile.UnderlyingProfile.GetSunrise();
+            var sundownTime = Profile.UnderlyingProfile.GetSundown();
 
             var sunrisePercentage = sunriseTime.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
             var sundownPercentage = sundownTime.TotalSeconds / TimeSpan.FromDays(1).TotalSeconds;
