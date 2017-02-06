@@ -33,8 +33,7 @@ namespace Mlux
             var args = Environment.GetCommandLineArgs();
             if (args.Length > 0)
             {
-                var firstParam = args[0];
-                if (firstParam == "/startup")
+                if (args.Any(_ => _.Equals("/startup")))
                 {
                     startHidden = true;
                 }
