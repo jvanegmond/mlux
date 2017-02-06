@@ -41,10 +41,11 @@ namespace Mlux.Wpf
         public MainWindow()
         {
             InitializeComponent();
-
-            Loaded += MainWindow_Loaded;
+            
             Closing += MainWindow_Closing;
             Closed += MainWindow_Closed;
+            Loaded += MainWindow_Loaded;
+            Application.Current.Deactivated += Current_Deactivated;
 
             var profile = LoadProfile();
             _profile = new TimeProfileView(profile);
@@ -64,9 +65,20 @@ namespace Mlux.Wpf
             SetCurrentValues();
         }
 
+        private void Current_Deactivated(object sender, EventArgs e)
+        {
+            if (_settings == null || !_settings.IsActive)
+            {
+                Hide();
+            }
+        }
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            Open_settings_OnClick(this, new RoutedEventArgs());
+            // http://stackoverflow.com/questions/7620488/how-to-set-the-location-of-wpf-window-to-the-bottom-right-corner-of-desktop
+            var desktopWorkingArea = SystemParameters.WorkArea;
+            Left = desktopWorkingArea.Right - Width;
+            Top = desktopWorkingArea.Bottom - Height;
         }
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -109,7 +121,7 @@ namespace Mlux.Wpf
         private void _trayIcon_ExitClick(TrayIcon icon, EventArgs e)
         {
             // Close application
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
                 Application.Current.Shutdown();
             });
@@ -125,6 +137,7 @@ namespace Mlux.Wpf
             else
             {
                 Show();
+                Activate();
             }
         }
 
